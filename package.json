@@ -1,0 +1,20 @@
+{
+  "name": "type_fight",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^14.10.2",
+    "@typescript-eslint/eslint-plugin": "^4.1.1",
+    "@typescript-eslint/parser": "^4.1.1",
+    "eslint": "^7.9.0",
+    "http-server": "^0.12.3",
+    "nodemon": "^2.0.4",
+    "pixi.js": "^5.3.3",
+    "typescript": "^4.0.2",
+    "webpack": "^4.44.1"
+  },
+  "devDependencies": {
+    "webpack-cli": "^3.3.12"
+  }
+}
