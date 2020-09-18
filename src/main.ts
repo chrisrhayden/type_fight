@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import {GameMap} from "./game_map/game_map";
-import {BasicMap} from "./level_gen/bsic_map";
+import {BasicMap} from "./level_gen/basic_map";
 
 interface GameOpts {
   sprite_sheet: string;
