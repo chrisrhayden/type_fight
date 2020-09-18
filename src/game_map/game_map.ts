@@ -8,6 +8,7 @@ export enum GameTile {
 }
 
 export class GameMap {
+  // the size of the map in tiles
   width: number;
   height: number;
 
@@ -17,6 +18,7 @@ export class GameMap {
     this.width = width;
     this.height = height;
 
-    this.tiles = Array(this.width * this.height).fill(GameTile.WallOne);
+    // dont fill with anything and let the map generators do that
+    this.tiles = Array(this.width * this.height);
   }
 }
