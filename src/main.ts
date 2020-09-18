@@ -33,7 +33,9 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
     loader.add(sprite_sheet).load((_loader, resources) => {
       const sprites: PIXI.Spritesheet = resources[sprite_sheet].spritesheet;
 
-      if (sprites.textures) {
+      console.log(sprites);
+
+      if (sprites && sprites["textures"]) {
         resolve(sprites);
       } else {
         reject("cant make sprites");
@@ -45,12 +47,16 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
 class Game {
   options: GameOpts;
 
-  game_map: GameMap;
+  // idk if i should use only one container or many, sigh
+  container: PIXI.Container;
 
+  // the current sprite_sheet that everything will be drawn from
   sprite_sheet: PIXI.Spritesheet;
-  sprite_map: PIXI.Sprite[];
 
-  map_container: PIXI.Container;
+  // a struct to hold the game map
+  game_map: GameMap;
+  // the sprites for the part of map that is currently in window view
+  sprite_map: PIXI.Sprite[];
 
   // just set the options and the init_game function will load the data
   constructor(game_opts: GameOpts) {
@@ -65,7 +71,7 @@ class Game {
     this.game_map = new BasicMap(50, 36).make_basic_map();
 
     // get a container for the map sprites
-    this.map_container = new PIXI.Container();
+    this.container = new PIXI.Container();
 
     // make the sprite_map array
     this.sprite_map = Array(this.game_map.tiles.length);
@@ -75,7 +81,7 @@ class Game {
     this.make_sprite_map();
 
     // return the container to be added by th app
-    return this.map_container;
+    return this.container;
   }
 
   // make the sprite_map from the game_map
@@ -121,7 +127,7 @@ class Game {
       this.sprite_map[i].y = y;
 
       // add the sprite to the map_container so it will get added to the app
-      this.map_container.addChild(this.sprite_map[i]);
+      this.container.addChild(this.sprite_map[i]);
 
       x += tile_w;
       row_count += 1;
@@ -136,7 +142,7 @@ class Game {
   }
 }
 
-async function main(): Promise<void> {
+async function run(): Promise<void> {
   // pixi options
   const app_opts: AppOpts = {
     width: 800,
@@ -164,6 +170,11 @@ async function main(): Promise<void> {
 
   // add the game logic to the app loop
   app.ticker.add(() => game.run_game());
+}
+
+function main() {
+  // so we can evenly catch errors and do something about them
+  run().catch(console.log);
 }
 
 main();
