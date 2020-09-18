@@ -89,7 +89,8 @@ class SpriteMapFrame {
 
   constructor(sprite_rect: SpriteRect, source_rect: Rect) {
     this.frame = sprite_rect;
-    this.spriteSourceSize = sprite_rect;
+
+    this.spriteSourceSize = {x: 0, y: 0, w: 16, h: 16};
 
     this.sourceSize = source_rect;
 
@@ -142,11 +143,11 @@ class SpriteMapJsonBuilder {
       return new Result(null, false, "no image source given");
     }
 
-    if (!this.meta.size) {
+    if (!this.meta.size === null) {
       return new Result(null, false, "no source size given");
     }
 
-    if (!this.meta.scale) {
+    if (this.meta.scale === null) {
       return new Result(null, false, "no scale given");
     }
 
@@ -177,8 +178,12 @@ function make_sprite_json(
 
   let counter = 0;
 
-  for (let x = 0; x < source_size[0]; x += sprite_size[0]) {
-    for (let y = 0; y < source_size[1]; y += sprite_size[1]) {
+  // we have the axis in the outside loop to count the sprites row wise
+  // the outer y loop gets the first row
+  for (let y = 0; y < source_size[1]; y += sprite_size[1]) {
+    // then we run though the columns getting each sprite from left to right
+    // order
+    for (let x = 0; x < source_size[0]; x += sprite_size[0]) {
 
       const sprite_rect = new SpriteRect(x, y, sprite_size[0], sprite_size[1]);
 
@@ -198,7 +203,7 @@ function write_out_json(
   sprite_json: SpriteMapJson
 ): Result<null> {
   try {
-    fs.writeFileSync(output, JSON.stringify(sprite_json));
+    fs.writeFileSync(output, JSON.stringify(sprite_json, null, 4));
 
     return new Result(null, true, "write ok");
   } catch {
@@ -211,29 +216,27 @@ function run(): boolean {
     [SPRITE_SHEET_W, SPRITE_SHEET_H],
     [SRITE_SIZE_W, SRITE_SIZE_H]);
 
-  if (typeof sprite_json == "string") {
+  if (typeof sprite_json === "string") {
     console.error(sprite_json);
     return false;
   }
 
   const json_value = sprite_json.get_value();
 
-  if (!json_value || typeof json_value == "boolean") {
+  if (!json_value || typeof json_value === "boolean") {
     return false;
   } else {
+    console.log("writing file");
     const write_result = write_out_json(OUTPUT_PATH, json_value);
 
     return write_result.check_ok();
   }
 }
-function main(): void {
-  console.log("start");
 
+function main(): void {
   if (!run()) {
     process.exit(1);
   }
-
-  console.log("end");
 }
 
 main();
