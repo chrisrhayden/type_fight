@@ -6,7 +6,7 @@ var SPRITE_SHEET_H = 352;
 var SRITE_SIZE_W = 16;
 var SRITE_SIZE_H = 16;
 var IMAGE_NAME = "colored_packed.png";
-var OUTPUT_PATH = "public/assets/pngs/Kenney/Tilesheet/colored_packed.json";
+var OUTPUT_PATH = "public/assets/pngs/colored_packed.json";
 var Result = /** @class */ (function () {
     function Result(value, success, message) {
         this.value = value;

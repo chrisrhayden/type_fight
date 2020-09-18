@@ -8,7 +8,7 @@ const SRITE_SIZE_H = 16;
 
 const IMAGE_NAME = "colored_packed.png";
 
-const OUTPUT_PATH = "public/assets/pngs/Kenney/Tilesheet/colored_packed.json";
+const OUTPUT_PATH = "public/assets/pngs/colored_packed.json";
 
 interface ResultInterface<T> {
   value: T;
