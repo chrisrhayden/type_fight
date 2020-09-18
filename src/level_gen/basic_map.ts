@@ -31,6 +31,8 @@ export class BasicMap {
     this.max_room_size = 10;
 
     this.game_map = new GameMap(this.map_width, this.map_height);
+
+    this.game_map.tiles.fill(GameTile.WallOne);
   }
 
 
