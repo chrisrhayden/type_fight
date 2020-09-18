@@ -17,6 +17,6 @@ export class GameMap {
     this.width = width;
     this.height = height;
 
-    this.tiles = Array(this.width * this.height).fill(GameTile.Nothing);
+    this.tiles = Array(this.width * this.height).fill(GameTile.WallOne);
   }
 }
