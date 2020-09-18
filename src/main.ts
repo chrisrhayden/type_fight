@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import {GameTile, GameMap} from "./game_map";
-import {BasicMap} from "./map_gen/bsic_rect";
+import {BasicMap} from "./level_gen/bsic_rect";
 
 interface GameOpts {
   sprite_sheet: string;
@@ -27,7 +27,7 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
 
   const prom = new Promise<PIXI.Spritesheet>((resolve, reject) => {
     loader.add(sprite_sheet).load((_loader, resources) => {
-      let sprites: PIXI.Spritesheet = resources[sprite_sheet].spritesheet;
+      const sprites: PIXI.Spritesheet = resources[sprite_sheet].spritesheet;
 
       if (sprites) {
         resolve(sprites);
@@ -50,49 +50,40 @@ class Game {
 
   sprite_cache: Record<GameTile, PIXI.Sprite>;
 
+  container: PIXI.Container;
+
   constructor(game_opts: GameOpts) {
     this.options = game_opts;
   }
 
-  async init_game(): Promise<boolean> {
+  async init_game(): Promise<PIXI.Container> {
     this.sprite_sheet = await load_assets(this.options.sprite_sheet);
 
-    this.game_map = new BasicMap(50, 36).make_basic_map();
+    const basic_map = new BasicMap(50, 36);
 
-    return true;
+    this.game_map = basic_map.make_basic_map();
+
+    this.sprite_map = Array(this.game_map.tiles.length);
+
+
+    this.container = new PIXI.Container();
+
+    this.container.x = 0;
+    this.container.y = 0;
+
+    this.render_map();
+
+    return this.container;
   }
 
   run_game(): boolean {
-    this.render_map();
-  }
-
-  maintain() {
-    for (let i in this.game_map.tiles) {
-      let tile = this.game_map.tiles[i];
-
-      let sp: PIXI.Sprite;
-
-      if (!this.sprite_cache[tile]) {
-        sp = new PIXI.Sprite(this.sprite_sheet[i]);
-
-        this.sprite_cache[tile] = sp;
-      } else {
-        sp = this.sprite_cache[tile];
-      }
-
-      this.sprite_map[i] = sp;
-    }
-  }
-
-  render(): boolean {
-    if (!this.render_map()) {
-      return false;
-    }
-
     return true;
   }
 
   render_map(): boolean {
+    this.container.x = 0;
+    this.container.y = 0;
+
     const tile_w = 16;
     const tile_h = 16;
 
@@ -103,43 +94,42 @@ class Game {
 
     let row_count = 0;
 
-    for (const i in this.game_map.tiles) {
 
-      if (row_count == 50) {
+    for (let i = 0; i < this.game_map.tiles.length; ++i) {
+      if (row_count === 50) {
+        row_count = 0;
         x = start;
 
         y += tile_h;
       }
 
-      let sprite;
+      const tile = this.game_map.tiles[i];
 
-      let map_sp = this.game_map.tiles[i];
+      this.sprite_map[i] = new PIXI.Sprite(
+        this.sprite_sheet["textures"][tile.toString()]
+      );
 
-      if (this.sprite_cache[map_sp]) {
+      this.sprite_map[i].x = x;
+      this.sprite_map[i].y = y;
 
-      }
-
+      this.container.addChild(this.sprite_map[i]);
 
       x += tile_w;
+      row_count += 1;
     }
 
     return true;
   }
-
 }
 
-function main(): void {
-
+async function main(): Promise<void> {
   const sprite_sheet = "assets/pngs/colored_packed.json";
 
   const opts: GameOpts = {sprite_sheet};
 
   const game = new Game(opts);
 
-  game.init_game()
-    .catch(err => {
-      console.error("Error:", err);
-    });
+  const container = await game.init_game();
 
   const app_opts: AppOpts = {
     width: 800,
@@ -147,6 +137,10 @@ function main(): void {
   };
 
   const app = init_pixi(app_opts);
+
+  app.stage.addChild(container);
+
+  app.ticker.add(() => game.run_game());
 }
 
 main();
