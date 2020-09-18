@@ -1,5 +1,9 @@
 import * as PIXI from "pixi.js";
 
+interface GameOpts {
+  sprite_sheet: string;
+}
+
 interface AppOpts {
   width?: number,         // default: 800
   height?: number,        // default: 600
@@ -8,12 +12,7 @@ interface AppOpts {
   resolution?: number,       // default: 1
 }
 
-interface TFSprite {
-  cat: PIXI.Container,
-}
-
-
-function initPixi(options: AppOpts): PIXI.Application {
+function init_pixi(options: AppOpts): PIXI.Application {
   const app = new PIXI.Application(options);
 
   document.body.appendChild(app.view);
@@ -21,33 +20,55 @@ function initPixi(options: AppOpts): PIXI.Application {
   return app;
 }
 
+function load_assets(sprite_sheet: string): Promise<unknown> {
+  const loader = PIXI.Loader.shared;
 
+  const prom = new Promise((resolve, reject) => {
+    let sprites = {};
 
-function run(): boolean {
-  let sprites = new PIXI.Container();
+    loader.add(sprite_sheet).load((_loader, resources) => {
+      sprites = resources[sprite_sheet].spritesheet;
 
+      if (sprites) {
+        resolve(sprites);
+      } else {
+        reject("cant make sprites");
+      }
+    });
+  });
 
-  const appOpts = {width: 256, height: 256};
+  return prom;
+}
 
-  const app = initPixi(appOpts);
+async function run_game(app_opts: AppOpts, game_opts: GameOpts): Promise<boolean> {
+  const app = init_pixi(app_opts);
 
-  app.stage.addChild(sprites);
+  const sheet = await load_assets(game_opts.sprite_sheet);
 
+  const sp = new PIXI.Sprite(sheet["textures"]["1"]);
 
-  let texture = PIXI.Texture.from("assets/cat.png");
+  const cont = new PIXI.Container();
+  cont.addChild(sp);
 
-  let cat = new PIXI.Sprite(texture);
-
-  sprites.addChild(cat);
-
-  sprites.x = 96;
-  sprites.y = 96;
+  app.stage.addChild(cont);
 
   return true;
 }
 
 export default function main(): void {
-  run();
+  const sprite_sheet = "assets/pngs/colored_packed.json";
+
+  const app_opts: AppOpts = {};
+
+  const game_opts: GameOpts = {sprite_sheet};
+
+  run_game(app_opts, game_opts)
+    .then(() => {
+      console.log("good bye");
+    })
+    .catch(err => {
+      console.error("Error:", err);
+    });
 }
 
 main();
