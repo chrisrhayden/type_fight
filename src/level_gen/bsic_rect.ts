@@ -2,12 +2,10 @@
 // blob/part3/map_objects/game_map.py
 
 import * as utils from "../utils";
-import * as gen_utils from "./gen_utils";
-import {GameMap, GameTile} from "../game_map";
+import {Rect} from "../game_map/map_utils";
+import {GameMap, GameTile} from "../game_map/game_map";
 
 const get_random_int = utils.get_random_int;
-
-const Rect = gen_utils.Rect;
 
 export class BasicMap {
   // number tiles across
@@ -37,7 +35,7 @@ export class BasicMap {
 
 
   make_basic_map(): GameMap {
-    const made_rooms: gen_utils.Rect[] = [];
+    const made_rooms: Rect[] = [];
 
     let num_rooms = 0;
 
@@ -88,7 +86,7 @@ export class BasicMap {
   }
 
 
-  create_room(room: gen_utils.Rect): void {
+  create_room(room: Rect): void {
     // go through the tiles in the rectangle and make them passable
 
     for (let x = room.x1 + 1; x < room.x2; ++x) {
