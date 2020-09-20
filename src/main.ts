@@ -47,8 +47,8 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
 class Game {
   options: GameOpts;
 
-  // idk if i should use only one container or many, sigh
-  container: PIXI.Container;
+  // a container for the map
+  map_container: PIXI.Container;
 
   // the current sprite_sheet that everything will be drawn from
   sprite_sheet: PIXI.Spritesheet;
@@ -71,7 +71,7 @@ class Game {
     this.game_map = new BasicMap(50, 36).make_basic_map();
 
     // get a container for the map sprites
-    this.container = new PIXI.Container();
+    this.map_container = new PIXI.Container();
 
     // make the sprite_map array
     this.sprite_map = Array(this.game_map.tiles.length);
@@ -81,7 +81,7 @@ class Game {
     this.make_sprite_map();
 
     // return the container to be added by th app
-    return this.container;
+    return this.map_container;
   }
 
   // make the sprite_map from the game_map
@@ -127,7 +127,7 @@ class Game {
       this.sprite_map[i].y = y;
 
       // add the sprite to the map_container so it will get added to the app
-      this.container.addChild(this.sprite_map[i]);
+      this.map_container.addChild(this.sprite_map[i]);
 
       x += tile_w;
       row_count += 1;
