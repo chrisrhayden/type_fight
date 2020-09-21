@@ -3,7 +3,10 @@
 
 import * as utils from "../utils";
 import {Rect} from "../game_map/map_utils";
-import {GameMap, GameTile} from "../game_map/game_map";
+import {GameMap} from "../game_map/game_map";
+import {GameTile} from "../tiles";
+import {Scene} from "../scenes";
+import {Entities} from "../entities";
 
 const get_random_int = utils.get_random_int;
 
@@ -36,7 +39,7 @@ export class BasicMap {
   }
 
 
-  make_basic_map(): GameMap {
+  make_basic_map(entities: Entities, scene: Scene): GameMap {
     const made_rooms: Rect[] = [];
 
     let num_rooms = 0;
@@ -64,8 +67,16 @@ export class BasicMap {
       if (!intersects) {
         this.create_room(new_room);
 
-        if (num_rooms != 0) {
-          const [new_x, new_y] = new_room.center();
+        const [new_x, new_y] = new_room.center();
+
+        if (num_rooms == 0) {
+          const indx = new_x + (this.map_width * new_y);
+
+          scene.player = entities.new_id();
+
+          scene.components.position[scene.player] = indx;
+
+        } else {
 
           const [prev_x, prev_y] = made_rooms[made_rooms.length - 1].center();
 
