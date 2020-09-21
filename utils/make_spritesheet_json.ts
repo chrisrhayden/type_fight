@@ -95,7 +95,7 @@ class SpriteMapFrame {
     this.sourceSize = source_rect;
 
     this.rotated = false;
-    this.trimmed = true;
+    this.trimmed = false;
 
   }
 
