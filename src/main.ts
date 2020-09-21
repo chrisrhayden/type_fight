@@ -3,6 +3,8 @@ import {GameMap} from "./game_map/game_map";
 import {BasicMap} from "./level_gen/basic_map";
 import {Scenes} from "./scenes";
 import {Entities} from "./entities";
+import {add_key} from "./keyboard";
+import {GameTile} from "./tiles";
 
 interface GameOpts {
   sprite_sheet: string;
@@ -110,6 +112,8 @@ class Game {
     // add the active entities to the screen
     this.render_entities();
 
+    this.add_keys();
+
     // a sanity check
     if (this.current_scene === 0
       || this.containers["map"].children.length === 0
@@ -122,6 +126,82 @@ class Game {
 
     // return the containers to be added by the app
     return this.containers;
+  }
+
+  check_move(index: number): boolean {
+    const cur_scene = this.scenes.get_scene(this.current_scene);
+
+    if (this.game_map.tiles[index] !== GameTile.Nothing) {
+      return false;
+    }
+
+    const entities = Object.keys(cur_scene.components.active_entities);
+
+    for (const id of entities) {
+      const ent_indx = cur_scene.components.position[id];
+
+      if (index === ent_indx) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  add_keys(): boolean {
+    const w_key = add_key("w");
+
+    w_key.press = () => {
+      const cur_scene = this.scenes.get_scene(this.current_scene);
+
+      const new_indx =
+        cur_scene.components.position[cur_scene.player] - this.game_map.width;
+
+      if (this.check_move(new_indx)) {
+        cur_scene.components.position[cur_scene.player] = new_indx;
+      }
+    };
+
+    const d_key = add_key("d");
+
+    d_key.press = () => {
+      const cur_scene = this.scenes.get_scene(this.current_scene);
+
+      const new_indx =
+        cur_scene.components.position[cur_scene.player] + 1;
+
+      if (this.check_move(new_indx)) {
+        cur_scene.components.position[cur_scene.player] = new_indx;
+      }
+    };
+
+    const a_key = add_key("a");
+
+    a_key.press = () => {
+      const cur_scene = this.scenes.get_scene(this.current_scene);
+
+      const new_indx =
+        cur_scene.components.position[cur_scene.player] - 1;
+
+      if (this.check_move(new_indx)) {
+        cur_scene.components.position[cur_scene.player] = new_indx;
+      }
+    };
+
+    const s_key = add_key("s");
+
+    s_key.press = () => {
+      const cur_scene = this.scenes.get_scene(this.current_scene);
+
+      const new_indx =
+        cur_scene.components.position[cur_scene.player] + this.game_map.width;
+
+      if (this.check_move(new_indx)) {
+        cur_scene.components.position[cur_scene.player] = new_indx;
+      }
+    };
+
+    return true;
   }
 
   // make the sprite_map from the game_map
@@ -274,8 +354,8 @@ async function main(): Promise<void> {
   app.ticker.add(() => {
     const ok = game.run_game();
 
+    // the place where the error happened should try and print the error
     if (!ok) {
-      // the place where the error happened should try and print the error
       // hmm, idk how i feel about this
       app.ticker.stop();
     }
