@@ -1,3 +1,6 @@
+/// this will add numbers to a given sprite sheet
+///
+/// it is very primitive
 use std::error::Error;
 use std::path::PathBuf;
 
@@ -41,18 +44,12 @@ struct Opts {
 }
 
 fn add_numbers(opts: &Opts) -> Result<(), Box<dyn Error>> {
-    // Load the font
     let font_data = include_bytes!("../unscii.ttf");
 
-    // This only succeeds if collection consists of one font
     let font = Font::try_from_bytes(font_data as &[u8])
         .expect("Error constructing Font");
 
-    // The font size to use
     let scale = Scale::uniform(opts.scale);
-
-    // Use a dark red colour
-    let colour = (255, 255, 255);
 
     let src_img = image::open(&opts.src_img_path)?;
 
@@ -88,25 +85,15 @@ fn add_numbers(opts: &Opts) -> Result<(), Box<dyn Error>> {
 
         let num_string = format!("{}", num);
 
-        // layout the glyphs in a line with 20 pixels padding
         let glyphs: Vec<_> = font
             .layout(&num_string, scale, point(1_f32, 1_f32))
             .collect();
 
-        // Create a new rgba image with some padding
-
-        // Loop through the glyphs in the text, positing each one on a line
         for glyph in glyphs {
             if let Some(bounding_box) = glyph.pixel_bounding_box() {
-                // Draw the glyph into the image per-pixel by using the draw closure
                 glyph.draw(|x, y, v| {
                     let color: Rgba<u8> = if v > 0.4 {
-                        Rgba([
-                            colour.0,
-                            colour.1,
-                            colour.2,
-                            (v * 255_f32) as u8,
-                        ])
+                        Rgba([255, 255, 255, (v * 255_f32) as u8])
                     } else {
                         Rgba([0, 0, 0, 255])
                     };
