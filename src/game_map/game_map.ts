@@ -3,6 +3,7 @@ import {GameTile} from "../tiles";
 export class MapTile {
   visible: boolean;
   blocks: boolean;
+  blocks_light: boolean;
   tile: GameTile;
 }
 
