@@ -10,49 +10,6 @@ const IMAGE_NAME = "colored_packed.png";
 
 const OUTPUT_PATH = "public/assets/pngs/colored_packed.json";
 
-interface ResultInterface<T> {
-  value: T;
-  success: boolean;
-  message: string;
-}
-
-class Result<T> implements ResultInterface<T> {
-  value: T | null;
-  success: boolean;
-  message: string;
-
-  constructor(value: T | null, success: boolean, message: string) {
-    this.value = value;
-    this.success = success;
-    this.message = message;
-  }
-
-  check_ok(): boolean {
-    if (!this.success) {
-      if (this.message) {
-        console.error(this.message);
-      }
-
-      return false;
-    }
-
-    return true;
-  }
-
-  get_value(): T | boolean {
-    if (!this.check_ok()) {
-      return false;
-    }
-
-    if (!this.value) {
-      console.log(this.message);
-      return true;
-    } else {
-      return this.value;
-    }
-  }
-}
-
 class Rect {
   w: number;
   h: number;
@@ -138,29 +95,31 @@ class SpriteMapJsonBuilder {
     this.frames = {};
   }
 
-  build(): Result<SpriteMapJson> {
+  build(): SpriteMapJson | null {
     if (!this.meta.image) {
-      return new Result(null, false, "no image source given");
+      console.error("no image source given");
+      return null;
     }
 
     if (!this.meta.size === null) {
-      return new Result(null, false, "no source size given");
+      console.error("no source size given");
+      return null;
     }
 
     if (this.meta.scale === null) {
-      return new Result(null, false, "no scale given");
+      console.error("no scale given");
+      return null;
     }
 
     if (!this.frames) {
-      return new Result(null, false, "no frames given");
+      console.error("no frames given");
+      return null;
     }
 
-    const sp_map: SpriteMapJson = {
+    return {
       meta: this.meta,
       frames: this.frames,
     };
-
-    return new Result(sp_map, true, "");
   }
 }
 
@@ -168,7 +127,7 @@ function make_sprite_json(
   input: string,
   source_size: [number, number],
   sprite_size: [number, number]
-): Result<SpriteMapJson> {
+): SpriteMapJson {
   const sprite_map: SpriteMapJsonBuilder = new SpriteMapJsonBuilder();
 
   sprite_map.meta.image = input;
@@ -201,13 +160,14 @@ function make_sprite_json(
 function write_out_json(
   output: string,
   sprite_json: SpriteMapJson
-): Result<null> {
+): boolean {
   try {
     fs.writeFileSync(output, JSON.stringify(sprite_json, null, 4));
 
-    return new Result(null, true, "write ok");
+    console.error("write ok");
+    return false;
   } catch {
-    return new Result(null, false, "failed to write file");
+    return true;
   }
 }
 
@@ -216,20 +176,13 @@ function run(): boolean {
     [SPRITE_SHEET_W, SPRITE_SHEET_H],
     [SRITE_SIZE_W, SRITE_SIZE_H]);
 
-  if (typeof sprite_json === "string") {
-    console.error(sprite_json);
-    return false;
-  }
-
-  const json_value = sprite_json.get_value();
-
-  if (!json_value || typeof json_value === "boolean") {
+  if (!sprite_json) {
     return false;
   } else {
     console.log("writing file");
-    const write_result = write_out_json(OUTPUT_PATH, json_value);
+    const write_result = write_out_json(OUTPUT_PATH, sprite_json);
 
-    return write_result.check_ok();
+    return write_result;
   }
 }
 
