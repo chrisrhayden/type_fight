@@ -2,8 +2,6 @@
 
 class Key {
   value: string;
-  is_down: boolean;
-  is_up: boolean;
 
   press: () => void;
   release: () => void;
@@ -15,47 +13,31 @@ class Key {
 
   constructor() {
     this.value = "";
-    this.is_down = false;
-    this.is_up = true;
 
     this.press = null;
     this.release = null;
   }
 }
 
-// TODO: there should probably be a better event handler in general
+/** keyboard handler */
 export function add_key(key_str: string): Key {
   const key = new Key();
 
   key.value = key_str;
-  key.is_down = false;
-  key.is_up = true;
-  key.press = undefined;
-  key.release = undefined;
+  key.press = () => null;
+  key.release = () => null;
 
-  // the is_* in the handlers are a little unnecessary i think
-  // maybe to not get messed up by multiple key presses? unlikely
-  key.down_handle = (event) => {
+  key.down_handle = (event: KeyboardEvent) => {
     if (event.key === key.value) {
-      if (key.is_up && key.press) {
-        key.press();
-      }
-
-      key.is_down = true;
-      key.is_up = false;
+      key.press();
 
       event.preventDefault();
     }
   };
 
-  key.up_handle = (event) => {
+  key.up_handle = (event: KeyboardEvent) => {
     if (event.key === key.value) {
-      if (key.is_down && key.release) {
-        key.release();
-      }
-
-      key.is_down = false;
-      key.is_up = true;
+      key.release();
 
       event.preventDefault();
     }
@@ -70,13 +52,9 @@ export function add_key(key_str: string): Key {
     window.removeEventListener("keyup", up_handle);
   };
 
-  window.addEventListener(
-    "keydown", down_handle, false
-  );
+  window.addEventListener("keydown", down_handle, false);
 
-  window.addEventListener(
-    "keyup", up_handle, false
-  );
+  window.addEventListener("keyup", up_handle, false);
 
   return key;
 }
