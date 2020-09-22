@@ -1,10 +1,9 @@
 import * as PIXI from "pixi.js";
-import {GameMap} from "./game_map/game_map";
 import {BasicMap} from "./level_gen/basic_map";
 import {Scenes} from "./scenes";
+import {GameMap} from "./game_map/game_map";
 import {Entities} from "./entities";
 import {add_key} from "./keyboard";
-import {GameTile} from "./tiles";
 
 interface GameOpts {
   sprite_sheet: string;
@@ -62,9 +61,6 @@ class Game {
   // a cache for entity sprites
   entity_sprites: Record<number, PIXI.Sprite>;
 
-  // a struct to hold the game map
-  game_map: GameMap;
-
   // a class containing the game scenes
   scenes: Scenes;
 
@@ -92,8 +88,10 @@ class Game {
     const cur_scene = this.scenes.get_scene(this.current_scene);
 
     // get a basic dungeon map
-    this.game_map = new BasicMap(50, 36)
+    const game_map = new BasicMap(50, 36)
       .make_basic_map(this.entities, cur_scene);
+
+    cur_scene.add_game_map(game_map);
 
     this.containers = {};
 
@@ -102,10 +100,10 @@ class Game {
     this.containers["entities"] = new PIXI.Container();
 
     // make the sprite_map array
-    this.sprite_map = Array(this.game_map.tiles.length);
+    this.sprite_map = Array(game_map.tiles.length);
 
     // add the given sprites to the container and the sprite_map
-    this.make_sprite_map();
+    this.make_sprite_map(game_map);
 
     this.entity_sprites = {};
 
@@ -131,7 +129,7 @@ class Game {
   check_move(index: number): boolean {
     const cur_scene = this.scenes.get_scene(this.current_scene);
 
-    if (this.game_map.tiles[index] !== GameTile.Nothing) {
+    if (cur_scene.game_map.tiles[index].blocks === true) {
       return false;
     }
 
@@ -155,7 +153,7 @@ class Game {
       const cur_scene = this.scenes.get_scene(this.current_scene);
 
       const new_indx =
-        cur_scene.components.position[cur_scene.player] - this.game_map.width;
+        cur_scene.components.position[cur_scene.player] - cur_scene.game_map.width;
 
       if (this.check_move(new_indx)) {
         cur_scene.components.position[cur_scene.player] = new_indx;
@@ -194,7 +192,7 @@ class Game {
       const cur_scene = this.scenes.get_scene(this.current_scene);
 
       const new_indx =
-        cur_scene.components.position[cur_scene.player] + this.game_map.width;
+        cur_scene.components.position[cur_scene.player] + cur_scene.game_map.width;
 
       if (this.check_move(new_indx)) {
         cur_scene.components.position[cur_scene.player] = new_indx;
@@ -205,7 +203,7 @@ class Game {
   }
 
   // make the sprite_map from the game_map
-  make_sprite_map(): boolean {
+  make_sprite_map(game_map: GameMap): boolean {
     // get the sprite size to correctly increment the x,y axis
     const tile_w = this.options.sprite_size[0];
     const tile_h = this.options.sprite_size[1];
@@ -221,11 +219,11 @@ class Game {
     let row_count = 0;
 
     // we count the map tiles and do the math to place it on the screen
-    for (let i = 0; i < this.game_map.tiles.length; ++i) {
+    for (let i = 0; i < game_map.tiles.length; ++i) {
       // because we start at 0 if we are on the map width we have gone over the
       // end of the row and need to start x at the `start` position and
       // increment the y to start the net row
-      if (row_count === this.game_map.width) {
+      if (row_count === game_map.width) {
         // this should be zero as we are counting the map row
         row_count = 0;
 
@@ -235,7 +233,7 @@ class Game {
       }
 
       // get the corresponding map tile
-      const tile = this.game_map.tiles[i];
+      const tile = game_map.tiles[i];
 
       // set the sprite_map to the given Sprite
       this.sprite_map[i] = new PIXI.Sprite(
@@ -266,8 +264,8 @@ class Game {
     for (const [id, entity] of entries) {
       const pos = cur_scene.components.position[id];
 
-      const x = pos % this.game_map.width;
-      const y = Math.floor(pos / this.game_map.width);
+      const x = pos % cur_scene.game_map.width;
+      const y = Math.floor(pos / cur_scene.game_map.width);
 
       if (id in this.entity_sprites) {
         // multiply by the sprite size to place on screen correctly
@@ -289,8 +287,8 @@ class Game {
     // now for the player
     const pos = cur_scene.components.position[cur_scene.player];
 
-    const x = pos % this.game_map.width;
-    const y = Math.floor(pos / this.game_map.width);
+    const x = pos % cur_scene.game_map.width;
+    const y = Math.floor(pos / cur_scene.game_map.width);
 
     if (cur_scene.player in this.entity_sprites) {
       this.entity_sprites[cur_scene.player].x = x * this.options.sprite_size[0];
