@@ -3,7 +3,7 @@
 
 import * as utils from "../utils";
 import {Rect} from "../game_map/map_utils";
-import {GameMap} from "../game_map/game_map";
+import {GameMap, MapTile} from "../game_map/game_map";
 import {GameTile} from "../tiles";
 import {Scene} from "../scenes";
 import {Entities} from "../entities";
@@ -23,6 +23,8 @@ export class BasicMap {
   min_room_size: number;
   max_room_size: number;
 
+  nothing: MapTile;
+
 
   constructor(map_width: number, map_height: number) {
     this.map_width = map_width;
@@ -35,7 +37,19 @@ export class BasicMap {
 
     this.game_map = new GameMap(this.map_width, this.map_height);
 
-    this.game_map.tiles.fill(GameTile.WallOne);
+    const bg_tile: MapTile = {
+      tile: GameTile.WallOne,
+      visible: true,
+      blocks: true,
+    };
+
+    this.game_map.tiles.fill(bg_tile);
+
+    this.nothing = {
+      tile: GameTile.Nothing,
+      visible: true,
+      blocks: true,
+    };
   }
 
 
@@ -106,7 +120,7 @@ export class BasicMap {
       for (let y = room.y1 + 1; y < room.y2; ++y) {
         const indx = (x + (this.map_width * y));
 
-        this.game_map.tiles[indx] = GameTile.Nothing;
+        this.game_map.tiles[indx] = this.nothing;
       }
     }
   }
@@ -118,7 +132,7 @@ export class BasicMap {
     for (let x = x_min; x < x_max + 1; ++x) {
       const indx = (x + (this.map_width * y));
 
-      this.game_map.tiles[indx] = GameTile.Nothing;
+      this.game_map.tiles[indx] = this.nothing;
     }
   }
 
@@ -129,7 +143,7 @@ export class BasicMap {
     for (let y = y_min; y < y_max + 1; ++y) {
       const indx = (x + (this.map_width * y));
 
-      this.game_map.tiles[indx] = GameTile.Nothing;
+      this.game_map.tiles[indx] = this.nothing;
     }
   }
 }
