@@ -41,6 +41,7 @@ export class BasicMap {
       tile: GameTile.WallOne,
       visible: true,
       blocks: true,
+      blocks_light: true,
     };
 
     this.game_map.tiles.fill(bg_tile);
@@ -48,7 +49,8 @@ export class BasicMap {
     this.nothing = {
       tile: GameTile.Nothing,
       visible: true,
-      blocks: true,
+      blocks: false,
+      blocks_light: false,
     };
   }
 
