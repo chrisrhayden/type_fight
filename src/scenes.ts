@@ -1,6 +1,9 @@
 import {Components} from "./components";
+import {GameMap} from "./game_map/game_map";
 
 export class Scene {
+  game_map: GameMap;
+
   player: number;
 
   components: Components;
@@ -9,6 +12,10 @@ export class Scene {
     this.player = 0;
 
     this.components = new Components();
+  }
+
+  add_game_map(game_map: GameMap): void {
+    this.game_map = game_map;
   }
 }
 
@@ -38,4 +45,5 @@ export class Scenes {
   get_scene(scene_id: number): Scene {
     return this.scenes[scene_id];
   }
+
 }
