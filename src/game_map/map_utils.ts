@@ -1,4 +1,3 @@
-// ~~stolen~~ inspired by
 // https://github.com/TStand90/roguelike_tutorial_revised/
 // blob/part3/map_objects/rectangle.py
 
