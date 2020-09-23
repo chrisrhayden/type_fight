@@ -13,10 +13,6 @@ export class Scene {
 
     this.components = new Components();
   }
-
-  add_game_map(game_map: GameMap): void {
-    this.game_map = game_map;
-  }
 }
 
 export class Scenes {
