@@ -1,3 +1,4 @@
+// ~~stolen~~ inspired by
 // https://github.com/TStand90/roguelike_tutorial_revised/
 // blob/part3/map_objects/game_map.py
 
@@ -116,8 +117,6 @@ export class BasicMap {
 
 
   create_room(room: Rect): void {
-    // go through the tiles in the rectangle and make them passable
-
     for (let x = room.x1 + 1; x < room.x2; ++x) {
       for (let y = room.y1 + 1; y < room.y2; ++y) {
         const indx = (x + (this.map_width * y));
