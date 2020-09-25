@@ -1,16 +1,17 @@
-// https://github.com/TStand90/roguelike_tutorial_revised/
-// blob/part3/map_objects/rectangle.py
+/** utility's for map's
+ *
+ * this is largely taken from the python roguelike_tutorial_revised
+ * https://github.com/TStand90/roguelike_tutorial_revised/
+ * blob/part3/map_objects/rectangle.py
+ */
 
-// a basic rectangle with convenience functions
-//
-// this will represent a rectangle in a map
+// a rectangle in a map with with convenience functions
 export class Rect {
   x1: number;
   y1: number;
   x2: number;
   y2: number;
 
-  // make a new rectangle in with the given coordinates and dimensions
   constructor(x: number, y: number, w: number, h: number) {
     this.x1 = x;
     this.y1 = y;
