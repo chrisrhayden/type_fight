@@ -1,3 +1,8 @@
+/** a scene store
+ *
+ * this should be improved to be more dynamic allowing things like pause menus
+ * to be expressed with a `Scene`
+ */
 import {Components} from "./components";
 import {GameMap} from "./game_map/game_map";
 
@@ -41,5 +46,4 @@ export class Scenes {
   get_scene(scene_id: number): Scene {
     return this.scenes[scene_id];
   }
-
 }
