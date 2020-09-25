@@ -1,5 +1,16 @@
-// https://github.com/kittykatattack/learningPixi
+/** a keyboard handler
+ *
+ * this is basically entirely taken from
+ * https://github.com/kittykatattack/learningPixi
+ *
+ * NOTE: this will change at some point to handle input in the main game loop
+ */
 
+/** a basic key handler
+ *
+ * this class wraps key input to give a controllable handle on the key that can
+ * be change at different times
+ */
 class Key {
   value: string;
 
@@ -19,7 +30,7 @@ class Key {
   }
 }
 
-/** keyboard handler */
+/** make a key handler */
 export function add_key(key_str: string): Key {
   const key = new Key();
 
