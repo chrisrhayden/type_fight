@@ -1,4 +1,4 @@
-public/
+# public/main.bundle.js
 utils/*.js
 # Created by https://www.gitignore.io/api/git,vim,node
 # Edit at https://www.gitignore.io/?templates=git,vim,node
