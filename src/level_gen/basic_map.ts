@@ -1,6 +1,9 @@
-// ~~stolen~~ inspired by
-// https://github.com/TStand90/roguelike_tutorial_revised/
-// blob/part3/map_objects/game_map.py
+/** ~~stolen~~ inspired by the python roguelike_tutorial_revised
+ * https://github.com/TStand90/roguelike_tutorial_revised/
+ * blob/part3/map_objects/game_map.py
+ *
+ * this is basically as close as I could make it
+ */
 
 import * as utils from "../utils";
 import {Rect} from "../game_map/map_utils";
@@ -8,8 +11,6 @@ import {GameMap, MapTile} from "../game_map/game_map";
 import {GameTile} from "../tiles";
 import {Scene} from "../scenes";
 import {Entities} from "../entities";
-
-const get_random_int = utils.get_random_int;
 
 export class BasicMap {
   // number tiles across
@@ -38,21 +39,11 @@ export class BasicMap {
 
     this.game_map = new GameMap(this.map_width, this.map_height);
 
-    const bg_tile: MapTile = {
-      tile: GameTile.WallOne,
-      visible: true,
-      blocks: true,
-      blocks_light: true,
-    };
+    const bg_tile = new MapTile(GameTile.WallOne, true);
 
     this.game_map.tiles.fill(bg_tile);
 
-    this.nothing = {
-      tile: GameTile.Nothing,
-      visible: true,
-      blocks: false,
-      blocks_light: false,
-    };
+    this.nothing = new MapTile(GameTile.Nothing, false);
   }
 
 
@@ -62,12 +53,11 @@ export class BasicMap {
     let num_rooms = 0;
 
     for (let r = 0; r < this.max_rooms; ++r) {
+      const w = utils.get_random_int(this.min_room_size, this.max_room_size);
+      const h = utils.get_random_int(this.min_room_size, this.max_room_size);
 
-      const w = get_random_int(this.min_room_size, this.max_room_size);
-      const h = get_random_int(this.min_room_size, this.max_room_size);
-
-      const x = get_random_int(0, this.map_width - w - 1);
-      const y = get_random_int(0, this.map_height - h - 1);
+      const x = utils.get_random_int(0, this.map_width - w - 1);
+      const y = utils.get_random_int(0, this.map_height - h - 1);
 
       const new_room = new Rect(x, y, w, h);
 
@@ -94,7 +84,6 @@ export class BasicMap {
           scene.components.position[scene.player] = indx;
 
         } else {
-
           const [prev_x, prev_y] = made_rooms[made_rooms.length - 1].center();
 
           if (Math.random() > 0.5) {
