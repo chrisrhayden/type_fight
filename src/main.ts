@@ -1,11 +1,13 @@
+/** the main app entry point */
 import * as PIXI from "pixi.js";
 import {BasicMap} from "./level_gen/basic_map";
 import {Scenes} from "./scenes";
 import {GameMap} from "./game_map/game_map";
 import {Entities} from "./entities";
 import {add_key} from "./keyboard";
+import {GameTile} from "./tiles";
 
-interface GameOpts {
+export interface GameOpts {
   sprite_sheet: string;
   sprite_size: [number, number];
 }
@@ -45,6 +47,8 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
   });
 }
 
+// NOTE: this class is so big at the moment as there is so much context that
+// needs to be shared between functions like sprite_sheet and scene.components
 class Game {
   options: GameOpts;
 
@@ -76,13 +80,14 @@ class Game {
   }
 
   // this is the real constructor so we can load things asynchronously
-  async init_game(): Promise<Record<string, PIXI.Container> | boolean> {
+  async init_game(): Promise<Record<string, PIXI.Container> | null> {
     this.sprite_sheet = await load_assets(this.options.sprite_sheet);
 
     this.entities = new Entities();
 
     this.scenes = new Scenes();
 
+    // get a new scene and make it the current_scene
     this.current_scene = this.scenes.new_scene();
 
     const cur_scene = this.scenes.get_scene(this.current_scene);
@@ -91,13 +96,13 @@ class Game {
     const game_map = new BasicMap(50, 36)
       .make_basic_map(this.entities, cur_scene);
 
-    cur_scene.add_game_map(game_map);
-
-    this.containers = {};
+    cur_scene.game_map = game_map;
 
     // get a containers for the sprites
-    this.containers["map"] = new PIXI.Container();
-    this.containers["entities"] = new PIXI.Container();
+    this.containers = {
+      map: new PIXI.Container(),
+      entities: new PIXI.Container(),
+    };
 
     // make the sprite_map array
     this.sprite_map = Array(game_map.tiles.length);
@@ -105,9 +110,12 @@ class Game {
     // add the given sprites to the container and the sprite_map
     this.make_sprite_map(game_map);
 
+    // add the active entities to the screen
+    //
+    // this will be used in the game loop so we also instantiate the
+    // entity_sprites in this function rather then that one
     this.entity_sprites = {};
 
-    // add the active entities to the screen
     this.render_entities();
 
     this.add_keys();
@@ -119,87 +127,11 @@ class Game {
 
       console.error("did no make the game data correctly");
 
-      return false;
+      return null;
     }
 
     // return the containers to be added by the app
     return this.containers;
-  }
-
-  check_move(index: number): boolean {
-    const cur_scene = this.scenes.get_scene(this.current_scene);
-
-    if (cur_scene.game_map.tiles[index].blocks === true) {
-      return false;
-    }
-
-    const entities = Object.keys(cur_scene.components.active_entities);
-
-    for (const id of entities) {
-      const ent_indx = cur_scene.components.position[id];
-
-      if (index === ent_indx) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  add_keys(): boolean {
-    const w_key = add_key("w");
-
-    w_key.press = () => {
-      const cur_scene = this.scenes.get_scene(this.current_scene);
-
-      const new_indx =
-        cur_scene.components.position[cur_scene.player] - cur_scene.game_map.width;
-
-      if (this.check_move(new_indx)) {
-        cur_scene.components.position[cur_scene.player] = new_indx;
-      }
-    };
-
-    const d_key = add_key("d");
-
-    d_key.press = () => {
-      const cur_scene = this.scenes.get_scene(this.current_scene);
-
-      const new_indx =
-        cur_scene.components.position[cur_scene.player] + 1;
-
-      if (this.check_move(new_indx)) {
-        cur_scene.components.position[cur_scene.player] = new_indx;
-      }
-    };
-
-    const a_key = add_key("a");
-
-    a_key.press = () => {
-      const cur_scene = this.scenes.get_scene(this.current_scene);
-
-      const new_indx =
-        cur_scene.components.position[cur_scene.player] - 1;
-
-      if (this.check_move(new_indx)) {
-        cur_scene.components.position[cur_scene.player] = new_indx;
-      }
-    };
-
-    const s_key = add_key("s");
-
-    s_key.press = () => {
-      const cur_scene = this.scenes.get_scene(this.current_scene);
-
-      const new_indx =
-        cur_scene.components.position[cur_scene.player] + cur_scene.game_map.width;
-
-      if (this.check_move(new_indx)) {
-        cur_scene.components.position[cur_scene.player] = new_indx;
-      }
-    };
-
-    return true;
   }
 
   // make the sprite_map from the game_map
@@ -233,11 +165,11 @@ class Game {
       }
 
       // get the corresponding map tile
-      const tile = game_map.tiles[i];
+      const map_tile = game_map.tiles[i];
 
       // set the sprite_map to the given Sprite
       this.sprite_map[i] = new PIXI.Sprite(
-        this.sprite_sheet["textures"][tile.toString()]
+        this.sprite_sheet["textures"][map_tile.terrain_data.tile.toString()]
       );
 
       // set the sprite to right place in the screen
@@ -254,8 +186,85 @@ class Game {
     return true;
   }
 
+  location_unblocked(index: number): boolean {
+    const cur_scene = this.scenes.get_scene(this.current_scene);
+
+    if (cur_scene.game_map.tiles[index].terrain_data.tile !== GameTile.Nothing) {
+      return false;
+    }
+
+    const entities = Object.keys(cur_scene.components.active_entities);
+
+    for (const id of entities) {
+      const ent_indx = cur_scene.components.position[id];
+
+      if (index === ent_indx) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  add_keys(): boolean {
+    const w_key = add_key("w");
+
+    w_key.press = () => {
+      const cur_scene = this.scenes.get_scene(this.current_scene);
+
+      const new_indx =
+        cur_scene.components.position[cur_scene.player] - cur_scene.game_map.width;
+
+      if (this.location_unblocked(new_indx)) {
+        cur_scene.components.position[cur_scene.player] = new_indx;
+      }
+    };
+
+    const d_key = add_key("d");
+
+    d_key.press = () => {
+      const cur_scene = this.scenes.get_scene(this.current_scene);
+
+      const new_indx =
+        cur_scene.components.position[cur_scene.player] + 1;
+
+      if (this.location_unblocked(new_indx)) {
+        cur_scene.components.position[cur_scene.player] = new_indx;
+      }
+    };
+
+    const a_key = add_key("a");
+
+    a_key.press = () => {
+      const cur_scene = this.scenes.get_scene(this.current_scene);
+
+      const new_indx =
+        cur_scene.components.position[cur_scene.player] - 1;
+
+      if (this.location_unblocked(new_indx)) {
+        cur_scene.components.position[cur_scene.player] = new_indx;
+      }
+    };
+
+    const s_key = add_key("s");
+
+    s_key.press = () => {
+      const cur_scene = this.scenes.get_scene(this.current_scene);
+
+      const new_indx =
+        cur_scene.components.position[cur_scene.player] + cur_scene.game_map.width;
+
+      if (this.location_unblocked(new_indx)) {
+        cur_scene.components.position[cur_scene.player] = new_indx;
+      }
+    };
+
+    return true;
+  }
+
   // update all active entities to there current position
   render_entities(): boolean {
+    // idk if we should pass this in
     const cur_scene = this.scenes.get_scene(this.current_scene);
 
     // get an iterator over the keys and values for the active entities
@@ -340,24 +349,22 @@ async function main(): Promise<void> {
   // wait for the game to load the assets
   const container = await game.init_game();
 
-  if (!container || typeof container === "boolean") {
+  // test if the game was created correctly
+  if (!container) {
     return;
   }
 
-  // add the game container to the app
+  // add the game containers to the app
   app.stage.addChild(container["map"]);
   app.stage.addChild(container["entities"]);
 
   // add the game logic to the app loop
   app.ticker.add(() => {
-    const ok = game.run_game();
-
-    // the place where the error happened should try and print the error
-    if (!ok) {
+    if (!game.run_game()) {
       // hmm, idk how i feel about this
       app.ticker.stop();
     }
   });
 }
 
-main();
+main().catch(console.error);
