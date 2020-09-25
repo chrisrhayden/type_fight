@@ -1,3 +1,7 @@
+/** Restrictive Precise Angle Shadowcasting
+ *
+ * https://github.com/jice-nospam/doryen-fov/blob/master/src/fov_restrictive.rs
+ */
 import {Scene} from "../scenes";
 
 /** offsets to move around a point
