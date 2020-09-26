@@ -3515,6 +3515,11 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
+rot-js@^2.1.4:
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/rot-js/-/rot-js-2.1.4.tgz#1f5473b10d3848d3c983369430a03c3497f79e96"
+  integrity sha512-UYgV8CPLNolXuzHNlwoGoEkA4fBExCbmrtns8Wl3YCGyVHqb5lgF+uUWXRJcDpWGbE/A7JSL3tUWtNUuRP790Q==
+
 run-parallel@^1.1.9:
   version "1.1.9"
   resolved "https://registry.yarnpkg.com/run-parallel/-/run-parallel-1.1.9.tgz#c9dd3a7cf9f4b2c4b6244e173a6ed866e61dd679"
