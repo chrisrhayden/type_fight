@@ -9,7 +9,7 @@
  *   for (let x = 0; x < 10; ++x) {
  *     const indx = x + (10 * y);
  *
- *     if (basic_map.game_map.data[indx].terrain_data.tile === 0) {
+ *     if (basic_map.game_map.data[indx].tile === 0) {
  *       process.stdout.write(" ");
  *     } else {
  *       process.stdout.write("#");
@@ -63,7 +63,7 @@ describe("testing basic_map", () => {
           const indx = x + (10 * y);
 
           assert.ok(
-            basic_map.game_map.data[indx].terrain_data.tile === made_tiles[indx],
+            basic_map.game_map.data[indx].tile === made_tiles[indx],
             "did make a room coreclty");
         }
 
@@ -91,7 +91,7 @@ describe("testing basic_map", () => {
           const indx = x + (10 * y);
 
           assert.ok(
-            basic_map.game_map.data[indx].terrain_data.tile === made_tiles[indx],
+            basic_map.game_map.data[indx].tile === made_tiles[indx],
             "did make a horizontal hallway coreclty");
         }
       }
@@ -118,7 +118,7 @@ describe("testing basic_map", () => {
           const indx = x + (10 * y);
 
           assert.ok(
-            basic_map.game_map.data[indx].terrain_data.tile === made_tiles[indx],
+            basic_map.game_map.data[indx].tile === made_tiles[indx],
             "did make a vertical hallway coreclty");
         }
       }
@@ -157,8 +157,8 @@ describe("testing basic_map", () => {
           // assert that the basic_map generator makes the same map given the
           // the same seed
           assert.ok(
-            made_map.data[indx].terrain_data.tile
-            === test_map_data.data[indx].terrain_data.tile,
+            made_map.data[indx].tile
+            === test_map_data.data[indx].tile,
             "did not make map correctly with a given seed");
         }
       }
