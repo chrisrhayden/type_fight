@@ -53,11 +53,11 @@ export class BasicMap {
 
     this.nothing = new MapTile(GameTile.Nothing, false);
 
-    this.game_map.tiles.fill(bg_tile);
+    this.game_map.data.fill(bg_tile);
   }
 
 
-  make_basic_map(entities: Entities, scene: Scene): GameMap {
+  make_map(entities: Entities, scene: Scene): GameMap {
     const made_rooms: Rect[] = [];
 
     let num_rooms = 0;
@@ -123,7 +123,7 @@ export class BasicMap {
       for (let y = room.y1 + 1; y < room.y2; ++y) {
         const indx = (x + (this.map_width * y));
 
-        this.game_map.tiles[indx] = this.nothing;
+        this.game_map.data[indx] = this.nothing;
       }
     }
   }
@@ -136,7 +136,7 @@ export class BasicMap {
     for (let x = x_min; x < x_max + 1; ++x) {
       const indx = (x + (this.map_width * y));
 
-      this.game_map.tiles[indx] = this.nothing;
+      this.game_map.data[indx] = this.nothing;
     }
   }
 
@@ -147,7 +147,7 @@ export class BasicMap {
     for (let y = y_min; y < y_max + 1; ++y) {
       const indx = (x + (this.map_width * y));
 
-      this.game_map.tiles[indx] = this.nothing;
+      this.game_map.data[indx] = this.nothing;
     }
   }
 }
