@@ -38,6 +38,13 @@ all assets are from [Kenny's 1-Bit Pack](https://kenney.nl/assets/bit-pack).
 
 ## architecture
 
+### toc
+[rendering](#rendering)
+[systems](#systems)
+[building](#building and serving)
+[testing](#testing)
+[project layout](#project layout)
+
 the basic architecture more or less follows this
 [roguelike tutorial](http://rogueliketutorials.com/),
 the game systems and component system are adapted to my tastes but should be
@@ -89,7 +96,7 @@ is displaying, hopefully there is an easy way to do this like with the entities.
 at the moment we are just updating each entity's `Sprite` position every loop,
 this should be fine.
 
-### game systems and fake ecs
+### systems
 
 #### input
 
