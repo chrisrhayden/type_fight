@@ -3,9 +3,13 @@
  * blob/part3/map_objects/game_map.py
  *
  * this is basically as close as I could make it
+ * tunnel h and v
+ *
+ * while create_room is check before it gets run the tunnel functions are not,
+ * this is kinda nice as it is what makes levels look misshapen
  */
 
-import * as utils from "../utils";
+import {FeatureGenerator} from "../feature_generator";
 import {Rect} from "../game_map/map_utils";
 import {GameMap, MapTile} from "../game_map/game_map";
 import {GameTile} from "../tiles";
@@ -27,8 +31,14 @@ export class BasicMap {
 
   nothing: MapTile;
 
+  // rely on feature_generator for rng and to make entity's
+  feature_generator: FeatureGenerator;
+  rng: FeatureGenerator["rng"];
 
-  constructor(map_width: number, map_height: number) {
+  constructor(feature: FeatureGenerator, map_width: number, map_height: number) {
+    this.feature_generator = feature;
+    this.rng = this.feature_generator.rng;
+
     this.map_width = map_width;
     this.map_height = map_height;
 
@@ -41,9 +51,9 @@ export class BasicMap {
 
     const bg_tile = new MapTile(GameTile.WallOne, true);
 
-    this.game_map.tiles.fill(bg_tile);
-
     this.nothing = new MapTile(GameTile.Nothing, false);
+
+    this.game_map.tiles.fill(bg_tile);
   }
 
 
@@ -53,11 +63,13 @@ export class BasicMap {
     let num_rooms = 0;
 
     for (let r = 0; r < this.max_rooms; ++r) {
-      const w = utils.get_random_int(this.min_room_size, this.max_room_size);
-      const h = utils.get_random_int(this.min_room_size, this.max_room_size);
+      const w = this.rng.getUniformInt(this.min_room_size, this.max_room_size);
 
-      const x = utils.get_random_int(0, this.map_width - w - 1);
-      const y = utils.get_random_int(0, this.map_height - h - 1);
+      const h = this.rng.getUniformInt(this.min_room_size, this.max_room_size);
+
+      const x = this.rng.getUniformInt(0, this.map_width - w - 1);
+
+      const y = this.rng.getUniformInt(0, this.map_height - h - 1);
 
       const new_room = new Rect(x, y, w, h);
 
@@ -86,9 +98,10 @@ export class BasicMap {
         } else {
           const [prev_x, prev_y] = made_rooms[made_rooms.length - 1].center();
 
-          if (Math.random() > 0.5) {
+          if (this.rng.getUniform() > 0.5) {
             this.create_h_tunnel(prev_x, new_x, prev_y);
             this.create_v_tunnel(prev_y, new_y, new_x);
+
           } else {
             this.create_v_tunnel(prev_y, new_y, prev_x);
             this.create_h_tunnel(prev_x, new_x, new_y);
@@ -114,6 +127,7 @@ export class BasicMap {
       }
     }
   }
+
 
   create_h_tunnel(x1: number, x2: number, y: number): void {
     const x_min = Math.min(x1, x2);
