@@ -140,7 +140,7 @@ step fails, then rerun the whole process once the source files change.
 at the moment the only library for testing being used is
 [mocha](https://mochajs.org/).
 this is the library that runs the test and provides the `describe` and `it`
-functions that structure make up the test structure/layout
+functions that make up the test structure/layout
 
 to run
 
@@ -168,6 +168,10 @@ development or used to generate other files for the project are stored at
 
 all source files and directories are hopefully named well, any more info should
 be module level in the file itself or comments, god help us all.
+
+the `test` directory is well, the test directory. `./test/index.ts` is to
+basically for alias to the things that are getting tested, other stuff like test
+utility's can be put there
 
 the typescript compiler will create the built javascript files in to the
 `./dist` directory to keep the `./src` and `./public` directories clean.
