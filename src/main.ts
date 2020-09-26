@@ -1,5 +1,7 @@
 /** the main app entry point */
 import * as PIXI from "pixi.js";
+
+import {FeatureGenerator} from "./feature_generator";
 import {BasicMap} from "./level_gen/basic_map";
 import {Scenes} from "./scenes";
 import {GameMap} from "./game_map/game_map";
@@ -10,6 +12,7 @@ import {GameTile} from "./tiles";
 export interface GameOpts {
   sprite_sheet: string;
   sprite_size: [number, number];
+  rng_seed: number,
 }
 
 interface AppOpts {
@@ -71,6 +74,8 @@ class Game {
   // a class to make unique entities
   entities: Entities;
 
+  feature_generator: FeatureGenerator;
+
   // the current scene being used
   current_scene: number;
 
@@ -92,9 +97,11 @@ class Game {
 
     const cur_scene = this.scenes.get_scene(this.current_scene);
 
+    this.feature_generator = new FeatureGenerator(this.options.rng_seed);
+
     // get a basic dungeon map
-    const game_map = new BasicMap(50, 36)
-      .make_basic_map(this.entities, cur_scene);
+    const game_map = new BasicMap(this.feature_generator, 50, 36)
+      .make_map(this.entities, cur_scene);
 
     cur_scene.game_map = game_map;
 
@@ -105,7 +112,7 @@ class Game {
     };
 
     // make the sprite_map array
-    this.sprite_map = Array(game_map.tiles.length);
+    this.sprite_map = Array(game_map.data.length);
 
     // add the given sprites to the container and the sprite_map
     this.make_sprite_map(game_map);
@@ -151,7 +158,7 @@ class Game {
     let row_count = 0;
 
     // we count the map tiles and do the math to place it on the screen
-    for (let i = 0; i < game_map.tiles.length; ++i) {
+    for (let i = 0; i < game_map.data.length; ++i) {
       // because we start at 0 if we are on the map width we have gone over the
       // end of the row and need to start x at the `start` position and
       // increment the y to start the net row
@@ -165,7 +172,7 @@ class Game {
       }
 
       // get the corresponding map tile
-      const map_tile = game_map.tiles[i];
+      const map_tile = game_map.data[i];
 
       // set the sprite_map to the given Sprite
       this.sprite_map[i] = new PIXI.Sprite(
@@ -189,7 +196,7 @@ class Game {
   location_unblocked(index: number): boolean {
     const cur_scene = this.scenes.get_scene(this.current_scene);
 
-    if (cur_scene.game_map.tiles[index].terrain_data.tile !== GameTile.Nothing) {
+    if (cur_scene.game_map.data[index].terrain_data.tile !== GameTile.Nothing) {
       return false;
     }
 
@@ -339,6 +346,7 @@ async function main(): Promise<void> {
   const app = init_pixi(app_opts);
 
   const opts: GameOpts = {
+    rng_seed: 3333,
     sprite_sheet: "assets/pngs/colored_packed.json",
     sprite_size: [16, 16],
   };
