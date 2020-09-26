@@ -6,59 +6,27 @@
  * NOTE: this will change at some point to handle input in the main game loop
  */
 
-/** a basic key handler
- *
- * this class wraps key input to give a controllable handle on the key that can
- * be change at different times
- */
-class Key {
-  value: string;
-
-  press: () => void;
-  release: () => void;
-
-  down_handle: (evt: KeyboardEvent) => void;
-  up_handle: (evt: KeyboardEvent) => void;
-
-  unsubscribe: () => void;
-
-  constructor() {
-    this.value = "";
-
-    this.press = null;
-    this.release = null;
-  }
-}
 
 /** make a key handler */
-export function add_key(key_str: string): Key {
-  const key = new Key();
-
-  key.value = key_str;
-  key.press = () => null;
-  key.release = () => null;
-
-  key.down_handle = (event: KeyboardEvent) => {
-    if (event.key === key.value) {
-      key.press();
+export function add_key(event_queue: Event[], key_str: string): () => void {
+  const down_handle = (event: KeyboardEvent) => {
+    if (event.key === key_str) {
+      event_queue.push(event);
 
       event.preventDefault();
     }
   };
 
-  key.up_handle = (event: KeyboardEvent) => {
-    if (event.key === key.value) {
-      key.release();
+  const up_handle = (event: KeyboardEvent) => {
+    if (event.key === key_str) {
+      event_queue.push(event);
 
       event.preventDefault();
     }
   };
-
-  const down_handle = key.down_handle.bind(key);
-  const up_handle = key.up_handle.bind(key);
 
   // Detach event listeners
-  key.unsubscribe = function () {
+  const unsubscribe = function () {
     window.removeEventListener("keydown", down_handle);
     window.removeEventListener("keyup", up_handle);
   };
@@ -67,5 +35,5 @@ export function add_key(key_str: string): Key {
 
   window.addEventListener("keyup", up_handle, false);
 
-  return key;
+  return unsubscribe;
 }
