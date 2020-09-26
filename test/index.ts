@@ -1,3 +1,4 @@
+export {Components} from "../src/components";
 export {GameMap} from "../src/game_map/game_map";
 export {BasicMap} from "../src/level_gen/basic_map";
 export {FeatureGenerator} from "../src/feature_generator";
