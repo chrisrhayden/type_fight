@@ -6,7 +6,7 @@ import {Components} from "./index";
 describe("test Components", () => {
   const components = new Components();
 
-  describe("gets created correctly", () => {
+  describe("should created game map", () => {
     // TODO: this is kinda useless as javascript doesn't have class level
     // variable definitions i think
     it("makes a blank objext in all values", () => {

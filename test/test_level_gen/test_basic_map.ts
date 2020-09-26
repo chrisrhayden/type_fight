@@ -30,7 +30,7 @@ import {GameTile, Rect, BasicMap, FeatureGenerator, Entities, Scene} from "../in
 
 describe("testing basic_map", () => {
   /** unit testing */
-  describe("basic map runs correctly", () => {
+  describe("should make rooms in to a map", () => {
     const seed = 3333;
 
     const width = 10;
@@ -39,7 +39,7 @@ describe("testing basic_map", () => {
     const feature = new FeatureGenerator(seed);
 
 
-    it("should make a room correclty", () => {
+    it("makes a room correclty", () => {
       const basic_map = new BasicMap(feature, width, height);
 
       const made_tiles = Array(100).fill(GameTile.WallOne);
@@ -70,7 +70,7 @@ describe("testing basic_map", () => {
       }
     });
 
-    it("should make a horizontal hallway correclty", () => {
+    it("makes a horizontal hallway correclty", () => {
       const basic_map = new BasicMap(feature, width, height);
 
       const made_tiles = Array(100).fill(GameTile.WallOne);
@@ -97,7 +97,7 @@ describe("testing basic_map", () => {
       }
     });
 
-    it("should make a vertical hallway correclty", () => {
+    it("makes a vertical hallway correclty", () => {
       const basic_map = new BasicMap(feature, width, height);
 
       const made_tiles = Array(100).fill(GameTile.WallOne);
@@ -127,7 +127,7 @@ describe("testing basic_map", () => {
 
 
   /** integration testing */
-  describe("make a full level correctly", () => {
+  describe("should make a full level correctly", () => {
     const seed = 3333;
     const width = 50;
     const height = 36;
@@ -140,7 +140,7 @@ describe("testing basic_map", () => {
 
     const made_map = basic_map.make_map(entitys, scene);
 
-    it("it should set width & height data correclty", () => {
+    it("sets width & height data correclty", () => {
       assert.ok(made_map.width === test_map_data.width,
         "did not set width data correctly");
 
@@ -149,7 +149,7 @@ describe("testing basic_map", () => {
     });
 
     // TODO: test for more data maybe
-    it("should make the tile data correctly", () => {
+    it("makes the tile data correctly", () => {
       for (let y = 0; y < made_map.height; ++y) {
         for (let x = 0; x < made_map.width; ++x) {
           const indx = x + (10 * y);
