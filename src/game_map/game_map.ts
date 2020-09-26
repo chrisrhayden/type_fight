@@ -3,7 +3,6 @@
  * this just contains the map tiles and the basic data t work with the map
  */
 import {GameTile} from "../tiles";
-import {GameOpts} from "../main";
 
 class FovData {
   // if the tile is currently visible
@@ -59,13 +58,13 @@ export class GameMap {
   width: number;
   height: number;
 
-  tiles: MapTile[];
+  data: MapTile[];
 
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
 
     // dont fill with anything and let the map generators do that
-    this.tiles = Array(this.width * this.height);
+    this.data = Array(this.width * this.height);
   }
 }
