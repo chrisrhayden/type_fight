@@ -28,6 +28,10 @@ and the server when source code is saved/changed
 
 `yarn run nodemon --exec ./utils/run_server.sh`
 
+to run the test suite
+
+`yarn run moca --require ts-node/register ./test/**/*.ts`
+
 ## assets
 
 all assets are from [Kenny's 1-Bit Pack](https://kenney.nl/assets/bit-pack).
@@ -130,6 +134,22 @@ runtime things are sourced from `./` or `./assets` rather then `./public` or
 nodemon is a tool to watch the file system and run or rerun a command when a
 file changes. we then use a script so that nodemon will stop and wait if a build
 step fails, then rerun the whole process once the source files change.
+
+### testing
+
+at the moment the only library for testing being used is
+[mocha](https://mochajs.org/).
+this is the library that runs the test and provides the `describe` and `it`
+functions that structure make up the test structure/layout
+
+to run
+
+`yarn run moca --require ts-node/register ./test/**/*.ts`
+
+see [here](https://mochajs.org/#-require-module-r-module) for more on mocha
+require
+
+and [here](https://github.com/mochajs/mocha-examples/tree/master/packages/typescript) for an example project
 
 ### project layout
 
