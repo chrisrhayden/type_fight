@@ -11,7 +11,7 @@
 
 import {FeatureGenerator} from "../feature_generator";
 import {Rect} from "../game_map/map_utils";
-import {GameMap, MapTile} from "../game_map/game_map";
+import {GameMap, TerrainData} from "../game_map/game_map";
 import {GameTile} from "../tiles";
 import {Scene} from "../scenes";
 import {Entities} from "../entities";
@@ -29,7 +29,7 @@ export class BasicMap {
   min_room_size: number;
   max_room_size: number;
 
-  nothing: MapTile;
+  nothing: TerrainData;
 
   // rely on feature_generator for rng and to make entity's
   feature_generator: FeatureGenerator;
@@ -49,9 +49,9 @@ export class BasicMap {
 
     this.game_map = new GameMap(this.map_width, this.map_height);
 
-    const bg_tile = new MapTile(GameTile.WallOne, true);
+    const bg_tile = new TerrainData(GameTile.WallOne, true);
 
-    this.nothing = new MapTile(GameTile.Nothing, false);
+    this.nothing = new TerrainData(GameTile.Nothing, false);
 
     this.game_map.data.fill(bg_tile);
   }
