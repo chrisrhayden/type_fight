@@ -29,18 +29,16 @@ export class Scenes {
 
   constructor() {
     this.scenes = {};
-    this.new_id = 1;
+    this.new_id = 0;
     this.current_id = 0;
   }
 
   new_scene(): number {
-    const old_id = this.new_id;
-
-    this.scenes[old_id] = new Scene();
-
     this.new_id += 1;
 
-    return old_id;
+    this.scenes[this.new_id] = new Scene();
+
+    return this.new_id;
   }
 
   get_scene(scene_id: number): Scene {
