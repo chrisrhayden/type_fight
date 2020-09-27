@@ -10,10 +10,6 @@ get the dependency's
 
 `yarn install`
 
-run the [typescript](https://www.typescriptlang.org/) compiler
-
-`yarn run tsc`
-
 run [webpack](https://webpack.js.org/) to bundle everything together
 
 `yarn run webpack-cli`
@@ -122,15 +118,20 @@ i think this is ok for a small game
 
 #### building
 
-the typescript compiler will build the js files in to the `./dist` directory.
+~~the typescript compiler will build the js files in to the `./dist` directory.~~
 
-webpack will pull from the `./dist` directory and create the bundle at
-`./public/main.bundle.js`.
+~~webpack will pull from the `./dist` directory and create the bundle at
+`./public/main.bundle.js`.~~
+
+webpack will now load and bundle directly from the typescript files making the
+bundle at `./public/app.bundle.js`
 
 once running we then get debugging info from
 [source-map-loader](https://webpack.js.org/loaders/source-map-loader/) but
-it will link back to the built js files, I believe there is a way to set it up
-to use the typescript files but I haven't spent the time so I dont know.
+it will link back to the built js files
+
+~~I believe there is a way to set it up to use the typescript files but I
+haven't spent the time so I dont know.~~
 
 at the moment we are bundling `PIXI.js` along with everything else but at some
 point this should change to using pixi's
