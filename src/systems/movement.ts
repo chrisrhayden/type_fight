@@ -1,7 +1,6 @@
 import {Scene} from "../scenes";
 
-function move_by(scene: Scene, ent: number, offset: number): boolean {
-
+export function move_by(scene: Scene, ent: number, offset: number): boolean {
   const ent_pos = scene.components.position[ent];
 
   const new_pos = ent_pos + offset;
@@ -10,11 +9,13 @@ function move_by(scene: Scene, ent: number, offset: number): boolean {
     return false;
   }
 
-  const entities_pos = Object.values(scene.components.position);
+  const entities = Object.entries(scene.components.active_entities);
 
-  for (const other_ent of entities_pos) {
-    if (new_pos === other_ent) {
-      return false;
+  for (const [key, ent] of entities) {
+    if (new_pos === scene.components.position[key]) {
+      if (ent.blocks) {
+        return false;
+      }
     }
   }
 
