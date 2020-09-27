@@ -97,6 +97,10 @@ is displaying, hopefully there is an easy way to do this like with the entities.
 at the moment we are just updating each entity's `Sprite` position every loop,
 this should be fine.
 
+#### ui
+
+we are using [react](https://reactjs.org/) to handle the ui
+
 ### systems
 
 #### input
