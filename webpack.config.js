@@ -1,6 +1,6 @@
 const path = require("path");
 
-const src = path.resolve(__dirname, "dist", "index.js");
+const src = path.resolve(__dirname, "src", "App.tsx");
 const dist = path.resolve(__dirname, "public");
 
 module.exports = {
@@ -8,15 +8,23 @@ module.exports = {
   entry: src,
   output: {
     path: dist,
-    filename: "index.bundle.js"
+    filename: "app.bundle.js"
   },
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.tsx?$/,
         enforce: "pre",
-        use: ["source-map-loader"],
+        use: ["ts-loader", "source-map-loader"],
+        exclude: /node_module/
       },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"]
+      }
     ]
+  },
+  resolve: {
+    extensions: [".tsx", ".ts", ".css", ".js"]
   }
 };

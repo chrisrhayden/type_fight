@@ -42,11 +42,8 @@ interface AppOpts {
 }
 
 // get a new pixi app
-function init_pixi(options: AppOpts): PIXI.Application {
+export function init_pixi(options: AppOpts): PIXI.Application {
   const app = new PIXI.Application(options);
-
-  // add the new app to the current page
-  document.getElementById("game-div").appendChild(app.view);
 
   return app;
 }
@@ -121,7 +118,7 @@ enum GameState {
 
 // NOTE: this class is so big at the moment as there is so much context that
 // needs to be shared between functions like sprite_sheet and scene.components
-class Game {
+export class Game {
   options: GameOpts;
 
   // display containers, sprites are add to a container and pixi will draw them
@@ -370,7 +367,7 @@ class Game {
    *
    * this functions will be called 60 * sec or as much as possible
    */
-  run_game(): boolean {
+  game_tick(): boolean {
     // grab the current scene
     const cur_scene = this.scenes.get_scene(this.current_scene);
 
@@ -443,16 +440,7 @@ class Game {
   }
 }
 
-async function main(): Promise<void> {
-  // pixi options
-  const app_opts: AppOpts = {
-    width: 800,
-    height: 600,
-  };
-
-  // get a new pixi.js context
-  const app = init_pixi(app_opts);
-
+export async function start_game(app: PIXI.Application): Promise<void> {
   const opts: GameOpts = {
     rng_seed: 3333,
     sprite_sheet: "assets/pngs/colored_packed.json",
@@ -477,11 +465,9 @@ async function main(): Promise<void> {
 
   // add the game logic to the app loop
   app.ticker.add(() => {
-    if (!game.run_game()) {
+    if (!game.game_tick()) {
       // hmm, idk how i feel about this
       app.ticker.stop();
     }
   });
 }
-
-main().catch(console.error);

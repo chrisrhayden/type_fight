@@ -6,8 +6,6 @@ if [[ ! -e 'package.json' ]]; then
     exit 1
 fi
 
-yarn run tsc || exit 1
-
 yarn run webpack-cli || exit 1
 
 yarn run http-server
