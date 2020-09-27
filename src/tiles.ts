@@ -7,5 +7,7 @@ export enum GameTile {
   GrassOne = 5,
   GrassTwo = 6,
   GrassThree = 7,
+  Skeleton = 317,
+  Ogre = 318,
   WallOne = 826,
 }
