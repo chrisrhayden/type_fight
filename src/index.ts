@@ -10,6 +10,7 @@ import {Scenes, Scene} from "./scenes";
 import {GameMap} from "./game_map/game_map";
 import {Entities} from "./entities";
 import {add_key} from "./keyboard";
+import {run_ai} from "./systems/ai";
 // import {GameTile} from "./tiles";
 
 /** main game options
@@ -416,6 +417,12 @@ export class Game {
       // compute_fov needs to be run first
       if (!compute_fov(this.options.radius, cur_scene, cur_scene.player)) {
         console.error("could not compute fov");
+
+        return false;
+      }
+
+      if (!run_ai(cur_scene)) {
+        console.error("could not run ai");
 
         return false;
       }
