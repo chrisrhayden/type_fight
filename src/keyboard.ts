@@ -6,6 +6,17 @@
  * NOTE: this will change at some point to handle input in the main game loop
  */
 
+export function make_default_keys(
+  keys: Record<string, () => void>,
+  events: KeyboardEvent[]
+): boolean {
+  keys["w"] = add_key(events, "w");
+  keys["d"] = add_key(events, "d");
+  keys["a"] = add_key(events, "a");
+  keys["s"] = add_key(events, "s");
+
+  return true;
+}
 
 /** make a key handler */
 export function add_key(event_queue: Event[], key_str: string): () => void {

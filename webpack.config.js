@@ -13,7 +13,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.[tj]sx?$/,
         enforce: "pre",
         use: ["ts-loader", "source-map-loader"],
         exclude: /node_module/
@@ -25,6 +25,6 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".css", ".js"]
+    extensions: [".tsx", ".ts", ".js", ".css"]
   }
 };
