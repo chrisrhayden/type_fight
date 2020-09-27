@@ -29,8 +29,6 @@ export class BasicMap {
   min_room_size: number;
   max_room_size: number;
 
-  nothing: TerrainData;
-
   // rely on feature_generator for rng and to make entity's
   feature_generator: FeatureGenerator;
   rng: FeatureGenerator["rng"];
@@ -49,11 +47,9 @@ export class BasicMap {
 
     this.game_map = new GameMap(this.map_width, this.map_height);
 
-    const bg_tile = new TerrainData(GameTile.WallOne, true);
-
-    this.nothing = new TerrainData(GameTile.Nothing, false);
-
-    this.game_map.data.fill(bg_tile);
+    for (let i = 0; i < this.game_map.data.length; ++i) {
+      this.game_map.data[i] = new TerrainData(GameTile.WallOne, true);
+    }
   }
 
 
@@ -123,7 +119,7 @@ export class BasicMap {
       for (let y = room.y1 + 1; y < room.y2; ++y) {
         const indx = (x + (this.map_width * y));
 
-        this.game_map.data[indx] = this.nothing;
+        this.game_map.data[indx] = new TerrainData(GameTile.Nothing, false);
       }
     }
   }
@@ -136,7 +132,7 @@ export class BasicMap {
     for (let x = x_min; x < x_max + 1; ++x) {
       const indx = (x + (this.map_width * y));
 
-      this.game_map.data[indx] = this.nothing;
+      this.game_map.data[indx] = new TerrainData(GameTile.Nothing, false);
     }
   }
 
@@ -147,7 +143,7 @@ export class BasicMap {
     for (let y = y_min; y < y_max + 1; ++y) {
       const indx = (x + (this.map_width * y));
 
-      this.game_map.data[indx] = this.nothing;
+      this.game_map.data[indx] = new TerrainData(GameTile.Nothing, false);
     }
   }
 }

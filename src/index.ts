@@ -16,6 +16,8 @@ export interface GameOpts {
   sprite_sheet: string;
   sprite_size: [number, number];
   rng_seed: number,
+  // this is a bit wrong as it adds 1, (i.e. d = (r * 2) + 1)
+  radius: number,
 }
 
 interface AppOpts {
@@ -53,11 +55,11 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
   });
 }
 
-function compute_fov(scene: Scene): boolean {
+function compute_fov(radius: number, scene: Scene): boolean {
   const light_passes = (x: number, y: number): boolean => {
     const indx = x + (scene.game_map.width * y);
 
-    if (indx >= scene.game_map.data.length) {
+    if (indx < 0 || indx >= scene.game_map.data.length) {
       return false;
     }
 
@@ -72,10 +74,10 @@ function compute_fov(scene: Scene): boolean {
     }
 
 
-    if (visibility >= 0.5 && r <= 5) {
-      scene.game_map.fov[indx] = true;
-    } else {
-      scene.game_map.fov[indx] = false;
+    if (visibility >= 0.5 && r <= radius) {
+      scene.game_map.data[indx].visible = true;
+
+      scene.game_map.data[indx].visited = true;
     }
   };
 
@@ -86,7 +88,7 @@ function compute_fov(scene: Scene): boolean {
   const p_x = player_indx % scene.game_map.width;
   const p_y = Math.floor(player_indx / scene.game_map.width);
 
-  fov.compute(p_x, p_y, 5, cell_logic);
+  fov.compute(p_x, p_y, radius, cell_logic);
 
   return true;
 }
@@ -138,7 +140,12 @@ class Game {
     this.options = game_opts;
   }
 
-  // this is the real constructor so we can load things asynchronously
+  /** the real constructor
+   *
+   * so we can load things asynchronously
+   *
+   * all class variables must be initialized in this function before continuing
+   */
   async init_game(): Promise<Record<string, PIXI.Container> | null> {
     this.sprite_sheet = await load_assets(this.options.sprite_sheet);
 
@@ -146,48 +153,33 @@ class Game {
 
     this.scenes = new Scenes();
 
-    // get a new scene and make it the current_scene
     this.current_scene = this.scenes.new_scene();
 
     const cur_scene = this.scenes.get_scene(this.current_scene);
 
     this.feature_generator = new FeatureGenerator(this.options.rng_seed);
 
-    // get a basic dungeon map
     const game_map = new BasicMap(this.feature_generator, 50, 36)
       .make_map(this.entities, cur_scene);
 
     cur_scene.game_map = game_map;
 
-    // get a containers for the sprites
     this.containers = {
       map: new PIXI.Container(),
       entities: new PIXI.Container(),
     };
 
-    // make the sprite_map array
     this.sprite_map = Array(game_map.data.length);
 
-    // add the given sprites to the container and the sprite_map
     this.make_sprite_map(game_map);
 
-    // add the active entities to the screen
-    //
-    // this will be used in the game loop so we also instantiate the
-    // entity_sprites in this function rather then that one
     this.entity_sprites = {};
 
     this.render_entities(cur_scene);
 
-    this.events = [];
-
-    this.keys = {};
-
-    this.add_keys();
-
     this.game_state = GameState.PlayerTurn;
 
-    if (!compute_fov(cur_scene)) {
+    if (!compute_fov(this.options.radius, cur_scene)) {
       console.error("could not compute fov");
 
       return null;
@@ -200,16 +192,10 @@ class Game {
       return null;
     }
 
+    this.events = [];
+    this.keys = {};
 
-    // a sanity check
-    if (this.current_scene === 0
-      || this.containers["map"].children.length === 0
-      || this.containers["entities"].children.length === 0) {
-
-      console.error("did no make the game data correctly");
-
-      return null;
-    }
+    this.add_keys();
 
     // return the containers to be added by the app
     return this.containers;
@@ -218,8 +204,7 @@ class Game {
   // make the sprite_map from the game_map
   make_sprite_map(game_map: GameMap): boolean {
     // get the sprite size to correctly increment the x,y axis
-    const tile_w = this.options.sprite_size[0];
-    const tile_h = this.options.sprite_size[1];
+    const [tile_w, tile_h] = this.options.sprite_size;
 
     // so we can offset the map
     const start = 0;
@@ -254,6 +239,7 @@ class Game {
       this.sprite_map[i].x = x;
       this.sprite_map[i].y = y;
 
+      // set the sprite's visible to false allowing fov to work
       this.sprite_map[i].visible = false;
 
       // add the sprite to the map_container so it will get added to the app
@@ -266,10 +252,17 @@ class Game {
     return true;
   }
 
+  /** go over the whole map and set visibility */
   render_map(scene: Scene): boolean {
     for (let i = 0; i < scene.game_map.data.length; ++i) {
-      if (scene.game_map.fov[i] === true) {
+      if (scene.game_map.data[i].visible === true) {
         this.sprite_map[i].visible = true;
+
+        this.sprite_map[i].tint = 0xFFFFFF;
+      } else if (scene.game_map.data[i].visited === true) {
+        this.sprite_map[i].visible = true;
+
+        this.sprite_map[i].tint = 0x808080;
       } else {
         this.sprite_map[i].visible = false;
       }
@@ -402,11 +395,11 @@ class Game {
     }
 
     if (this.game_state === GameState.RunSystems) {
-      for (let i = 0; i < cur_scene.game_map.fov.length; ++i) {
-        cur_scene.game_map.fov[i] = false;
+      for (let i = 0; i < cur_scene.game_map.data.length; ++i) {
+        cur_scene.game_map.data[i].visible = false;
       }
 
-      if (!compute_fov(cur_scene)) {
+      if (!compute_fov(this.options.radius, cur_scene)) {
         console.error("could not compute fov");
 
         return false;
@@ -445,6 +438,7 @@ async function main(): Promise<void> {
     rng_seed: 3333,
     sprite_sheet: "assets/pngs/colored_packed.json",
     sprite_size: [16, 16],
+    radius: 3,
   };
 
   // get a new game

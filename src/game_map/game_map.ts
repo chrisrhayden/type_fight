@@ -13,15 +13,18 @@ export class TerrainData {
   id: number;
   tile: GameTile;
   blocks: boolean;
+  can_see: boolean;
   // if the tile has been visited before
-  visible: boolean;
   visited: boolean;
+  // if the tile is in view
+  visible: boolean;
 
-  constructor(tile: GameTile, visible: boolean) {
+  constructor(tile: GameTile, can_see: boolean) {
     this.id = 0;
     this.tile = tile;
-    this.blocks = visible;
-    this.visible = visible;
+    this.can_see = can_see;
+    this.blocks = can_see;
+    this.visible = false;
     this.visited = false;
   }
 }
@@ -33,7 +36,6 @@ export class GameMap {
   height: number;
 
   data: TerrainData[];
-  fov: boolean[];
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -41,9 +43,5 @@ export class GameMap {
 
     // dont fill with anything and let the map generators do that
     this.data = Array(this.width * this.height);
-
-    this.fov = Array(this.width * this.height);
-
-    this.fov.fill(false);
   }
 }
