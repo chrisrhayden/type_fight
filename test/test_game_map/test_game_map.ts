@@ -1,7 +1,7 @@
 import * as assert from "assert";
-import { describe, it } from "mocha";
+import {describe, it} from "mocha";
 
-import { GameMap } from "../index";
+import {GameMap} from "../index";
 
 describe("test game map", () => {
   const width = 10;

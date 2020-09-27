@@ -10,30 +10,40 @@ import {Scenes, Scene} from "./scenes";
 import {GameMap} from "./game_map/game_map";
 import {Entities} from "./entities";
 import {add_key} from "./keyboard";
-import {GameTile} from "./tiles";
+// import {GameTile} from "./tiles";
 
+/** main game options
+ *
+ * this may be split up if more runtime options are added
+ */
 export interface GameOpts {
+  // the sprite_sheet url
   sprite_sheet: string;
+  // the sprite_sheet w,h
   sprite_size: [number, number];
+  // the current rng seed
   rng_seed: number,
   // this is a bit wrong as it adds 1, (i.e. d = (r * 2) + 1)
   radius: number,
 }
 
+/** this is mostly to not have to look up the data again */
 interface AppOpts {
-  width?: number,        // default: 800
-  height?: number,       // default: 600
-  antialias?: boolean,   // default: false
-  transparent?: boolean, // default: false
-  resolution?: number,   // default: 1
+  // default: 800
+  width?: number,
+  // default: 600
+  height?: number,
+  // default: false
+  antialias?: boolean,
+  // default: false
+  transparent?: boolean,
+  // default: 1
+  resolution?: number,
 }
 
 // get a new pixi app
-function init_pixi(options: AppOpts): PIXI.Application {
+export function init_pixi(options: AppOpts): PIXI.Application {
   const app = new PIXI.Application(options);
-
-  // add the new app to the current page
-  document.getElementById("game-div").appendChild(app.view);
 
   return app;
 }
@@ -55,7 +65,12 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
   });
 }
 
-function compute_fov(radius: number, scene: Scene): boolean {
+/** run rot-js.fov.PreciseShadowcasting
+ *
+ * use rot-js's precise shadowcasting algorithm
+ */
+function compute_fov(radius: number, scene: Scene, ent: number): boolean {
+  // light_passes is a predicate if light passes
   const light_passes = (x: number, y: number): boolean => {
     const indx = x + (scene.game_map.width * y);
 
@@ -66,6 +81,7 @@ function compute_fov(radius: number, scene: Scene): boolean {
     return scene.game_map.data[indx].blocks === false;
   };
 
+  // this what to do when once in entity's view
   const cell_logic = (x: number, y: number, r: number, visibility: number) => {
     const indx = x + (scene.game_map.width * y);
 
@@ -73,8 +89,8 @@ function compute_fov(radius: number, scene: Scene): boolean {
       return false;
     }
 
-
-    if (visibility >= 0.5 && r <= radius) {
+    // visibility could be used to adjust tint at some point
+    if (visibility > 0 && r <= radius) {
       scene.game_map.data[indx].visible = true;
 
       scene.game_map.data[indx].visited = true;
@@ -83,10 +99,10 @@ function compute_fov(radius: number, scene: Scene): boolean {
 
   const fov = new ROT.FOV.PreciseShadowcasting(light_passes);
 
-  const player_indx = scene.components.position[scene.player];
+  const indx = scene.components.position[ent];
 
-  const p_x = player_indx % scene.game_map.width;
-  const p_y = Math.floor(player_indx / scene.game_map.width);
+  const p_x = indx % scene.game_map.width;
+  const p_y = Math.floor(indx / scene.game_map.width);
 
   fov.compute(p_x, p_y, radius, cell_logic);
 
@@ -95,14 +111,14 @@ function compute_fov(radius: number, scene: Scene): boolean {
 
 enum GameState {
   PlayerTurn,
-  RunSystems,
+  AiTurn,
   Pause,
   MainMenu,
 }
 
 // NOTE: this class is so big at the moment as there is so much context that
 // needs to be shared between functions like sprite_sheet and scene.components
-class Game {
+export class Game {
   options: GameOpts;
 
   // display containers, sprites are add to a container and pixi will draw them
@@ -179,7 +195,7 @@ class Game {
 
     this.game_state = GameState.PlayerTurn;
 
-    if (!compute_fov(this.options.radius, cur_scene)) {
+    if (!compute_fov(this.options.radius, cur_scene, cur_scene.player)) {
       console.error("could not compute fov");
 
       return null;
@@ -201,7 +217,20 @@ class Game {
     return this.containers;
   }
 
-  // make the sprite_map from the game_map
+  /** add default keys */
+  add_keys(): boolean {
+    this.keys["w"] = add_key(this.events, "w");
+
+    this.keys["d"] = add_key(this.events, "d");
+
+    this.keys["a"] = add_key(this.events, "a");
+
+    this.keys["s"] = add_key(this.events, "s");
+
+    return true;
+  }
+
+  /** make the sprite_map from the game_map */
   make_sprite_map(game_map: GameMap): boolean {
     // get the sprite size to correctly increment the x,y axis
     const [tile_w, tile_h] = this.options.sprite_size;
@@ -252,18 +281,25 @@ class Game {
     return true;
   }
 
-  /** go over the whole map and set visibility */
+  /** update the map tiles */
   render_map(scene: Scene): boolean {
     for (let i = 0; i < scene.game_map.data.length; ++i) {
+      // if currently visible
       if (scene.game_map.data[i].visible === true) {
         this.sprite_map[i].visible = true;
 
+        // this resets tint's
         this.sprite_map[i].tint = 0xFFFFFF;
+
+        // if the tile has been visited before
       } else if (scene.game_map.data[i].visited === true) {
         this.sprite_map[i].visible = true;
 
+        // tint grey
         this.sprite_map[i].tint = 0x808080;
+
       } else {
+        // dont display at all
         this.sprite_map[i].visible = false;
       }
     }
@@ -271,18 +307,13 @@ class Game {
     return true;
   }
 
-  // update all active entities to there current position
+  /** update all active entities */
   render_entities(scene: Scene): boolean {
     // get an iterator over the keys and values for the active entities
     const entries = Object.entries(scene.components.active_entities);
 
     for (const [id, entity] of entries) {
-      const pos = scene.components.position[id];
-
-      const x = pos % scene.game_map.width;
-      const y = Math.floor(pos / scene.game_map.width);
-
-      // TODO: wat
+      // add the entity if it does not exists
       if ((id in this.entity_sprites) === false) {
         this.entity_sprites[id] = new PIXI.Sprite(
           this.sprite_sheet["textures"][entity.tile.toString()]
@@ -291,11 +322,17 @@ class Game {
         this.containers["entities"].addChild(this.entity_sprites[id]);
       }
 
-      // multiply by the sprite size to place on screen correctly
-      this.entity_sprites[id].x = x * this.options.sprite_size[0];
-      this.entity_sprites[id].y = y * this.options.sprite_size[0];
+      const indx = scene.components.position[id];
 
-      if (scene.game_map[pos].fov === true) {
+      // if entity is in the player's view
+      if (scene.game_map.data[indx].visible === true) {
+        const tile_x = indx % scene.game_map.width;
+        const tile_y = Math.floor(indx / scene.game_map.width);
+
+        // multiply by the sprite size to place on screen correctly
+        this.entity_sprites[id].x = tile_x * this.options.sprite_size[0];
+        this.entity_sprites[id].y = tile_y * this.options.sprite_size[1];
+
         this.entity_sprites[id].visible = true;
 
       } else {
@@ -326,62 +363,36 @@ class Game {
     return true;
   }
 
-  location_unblocked(index: number): boolean {
+  /** a game tick
+   *
+   * this functions will be called 60 * sec or as much as possible
+   */
+  game_tick(): boolean {
+    // grab the current scene
     const cur_scene = this.scenes.get_scene(this.current_scene);
 
-    if (cur_scene.game_map.data[index].tile !== GameTile.Nothing) {
-      return false;
-    }
-
-    const entities = Object.keys(cur_scene.components.active_entities);
-
-    for (const id of entities) {
-      const ent_indx = cur_scene.components.position[id];
-
-      if (index === ent_indx) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  add_keys(): boolean {
-    this.keys["w"] = add_key(this.events, "w");
-
-    this.keys["d"] = add_key(this.events, "d");
-
-    this.keys["a"] = add_key(this.events, "a");
-
-    this.keys["s"] = add_key(this.events, "s");
-
-    return true;
-  }
-
-  // TODO: make game
-  run_game(): boolean {
-    const cur_scene = this.scenes.get_scene(this.current_scene);
-
+    // if its the players turn
     if (this.game_state === GameState.PlayerTurn) {
-      let moved = false;
+      let taken = false;
 
       let evt = this.events.shift();
 
+      // consume all evt's for this frame
       while (evt !== undefined) {
         if (evt.type === "keydown") {
           // case fall though as the default is so fucking stupid
           switch (evt.key) {
             case "w":
-              moved = move_up(cur_scene, cur_scene.player);
+              taken = move_up(cur_scene, cur_scene.player);
               break;
             case "a":
-              moved = move_left(cur_scene, cur_scene.player);
+              taken = move_left(cur_scene, cur_scene.player);
               break;
             case "s":
-              moved = move_down(cur_scene, cur_scene.player);
+              taken = move_down(cur_scene, cur_scene.player);
               break;
             case "d":
-              moved = move_right(cur_scene, cur_scene.player);
+              taken = move_right(cur_scene, cur_scene.player);
               break;
           }
         }
@@ -389,17 +400,21 @@ class Game {
         evt = this.events.shift();
       }
 
-      if (moved) {
-        this.game_state = GameState.RunSystems;
+      // if the player takes a turn then let ai take a turn
+      if (taken) {
+        this.game_state = GameState.AiTurn;
       }
     }
 
-    if (this.game_state === GameState.RunSystems) {
+    // if its the ai's turn
+    if (this.game_state === GameState.AiTurn) {
+      // reset visibility
       for (let i = 0; i < cur_scene.game_map.data.length; ++i) {
         cur_scene.game_map.data[i].visible = false;
       }
 
-      if (!compute_fov(this.options.radius, cur_scene)) {
+      // compute_fov needs to be run first
+      if (!compute_fov(this.options.radius, cur_scene, cur_scene.player)) {
         console.error("could not compute fov");
 
         return false;
@@ -417,6 +432,7 @@ class Game {
         return false;
       }
 
+      // let the player take a turn
       this.game_state = GameState.PlayerTurn;
     }
 
@@ -424,16 +440,7 @@ class Game {
   }
 }
 
-async function main(): Promise<void> {
-  // pixi options
-  const app_opts: AppOpts = {
-    width: 800,
-    height: 600,
-  };
-
-  // get a new pixi.js context
-  const app = init_pixi(app_opts);
-
+export async function start_game(app: PIXI.Application): Promise<void> {
   const opts: GameOpts = {
     rng_seed: 3333,
     sprite_sheet: "assets/pngs/colored_packed.json",
@@ -458,11 +465,9 @@ async function main(): Promise<void> {
 
   // add the game logic to the app loop
   app.ticker.add(() => {
-    if (!game.run_game()) {
+    if (!game.game_tick()) {
       // hmm, idk how i feel about this
       app.ticker.stop();
     }
   });
 }
-
-main().catch(console.error);
