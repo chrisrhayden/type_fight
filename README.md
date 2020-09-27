@@ -19,8 +19,8 @@ to start the dev server and click the link printed out
 
 `yarn run http-server`
 
-[nodemon](https://nodemon.io/) can also be used to rerun the compiler, webpack
-and the server when source code is saved/changed
+[nodemon](https://nodemon.io/) can also be used to rerun the webpack and the
+server when source code is saved/changed
 
 `yarn run nodemon --exec ./utils/run_server.sh`
 
@@ -52,9 +52,7 @@ need to adapt to [pixi.js](https://www.pixijs.com/) and web technology in
 general.
 
 a lot of other logic and patterns are taken from
-[roguebasin](http://www.roguebasin.com/index.php?title=Main_Page)
-articles, in particular the various algorithms like and
-[shadow casting](http://www.roguebasin.com/index.php?title=Category:FOV).
+[roguebasin](http://www.roguebasin.com/index.php?title=Main_Page) articles.
 
 ### rendering
 
