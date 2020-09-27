@@ -9,3 +9,5 @@
 - refactor tests to be more parallel
 
 - test are super naive, need to test for failure more
+
+- ensure webpack is tree shaking
