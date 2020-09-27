@@ -15,6 +15,7 @@ import {GameMap, TerrainData} from "../game_map/game_map";
 import {GameTile} from "../tiles";
 import {Scene} from "../scenes";
 import {Entities} from "../entities";
+import {Ai} from "../components";
 
 export class BasicMap {
   // number tiles across
@@ -29,11 +30,19 @@ export class BasicMap {
   min_room_size: number;
   max_room_size: number;
 
+  difficulty: number;
+
   // rely on feature_generator for rng and to make entity's
   feature_generator: FeatureGenerator;
   rng: FeatureGenerator["rng"];
 
-  constructor(feature: FeatureGenerator, map_width: number, map_height: number) {
+  constructor(
+    feature: FeatureGenerator,
+    difficulty: number,
+    map_width: number,
+    map_height: number
+  ) {
+    this.difficulty = difficulty;
     this.feature_generator = feature;
     this.rng = this.feature_generator.rng;
 
@@ -92,6 +101,19 @@ export class BasicMap {
           scene.components.position[scene.player] = indx;
 
         } else {
+          if (this.feature_generator.monster_by_difficulty(1)) {
+            const ent_id = entities.new_id();
+
+            const ent = this.feature_generator.make_enemy(this.difficulty);
+
+            scene.components.active_entities[ent_id] = ent;
+
+            scene.components.position[ent_id] =
+              new_x + (this.map_width * new_y);
+
+            scene.components.ai[ent_id] = Ai.Enemy;
+          }
+
           const [prev_x, prev_y] = made_rooms[made_rooms.length - 1].center();
 
           if (this.rng.getUniform() > 0.5) {
