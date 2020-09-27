@@ -3,14 +3,14 @@ import * as PIXI from "pixi.js";
 
 import * as ROT from "rot-js";
 
-import {move_up, move_down, move_left, move_right} from "./systems/movement";
-import {FeatureGenerator} from "./feature_generator";
-import {BasicMap} from "./level_gen/basic_map";
+import {make_default_keys} from "./keyboard";
+import {run_ai} from "./systems/ai";
+import {handle_input} from "./systems/input";
+import {Entities} from "./entities";
 import {Scenes, Scene} from "./scenes";
 import {GameMap} from "./game_map/game_map";
-import {Entities} from "./entities";
-import {add_key} from "./keyboard";
-import {run_ai} from "./systems/ai";
+import {BasicMap} from "./level_gen/basic_map";
+import {FeatureGenerator} from "./feature_generator";
 
 /** main game options */
 export interface GameOpts {
@@ -57,7 +57,7 @@ function compute_fov(radius: number, scene: Scene, ent: number): boolean {
     return scene.game_map.data[indx].blocks === false;
   };
 
-  // this what to do when once in entity's view
+  // this what to do when once a tile is in the players view
   const cell_logic = (x: number, y: number, r: number, visibility: number) => {
     const indx = x + (scene.game_map.width * y);
 
@@ -85,15 +85,18 @@ function compute_fov(radius: number, scene: Scene, ent: number): boolean {
   return true;
 }
 
-enum GameState {
+// this is just flow control for the main game loop
+enum LoopState {
   PlayerTurn,
   AiTurn,
   Pause,
   MainMenu,
 }
 
-// NOTE: this class is so big at the moment as there is so much context that
-// needs to be shared between functions like sprite_sheet and scene.components
+/** the game
+ *
+ * this makes up the basic structure of the game and the main flow control
+ */
 export class Game {
   options: GameOpts;
 
@@ -121,10 +124,13 @@ export class Game {
   // the current scene being used
   current_scene: number;
 
-  game_state: GameState;
+  // the game loop state
+  game_state: LoopState;
 
+  // the input events from the user
   events: KeyboardEvent[];
 
+  // the registered keys
   keys: Record<string, () => void>;
 
   // just set the options and the init_game function will load the data
@@ -137,6 +143,9 @@ export class Game {
    * so we can load things asynchronously
    *
    * all class variables must be initialized in this function before continuing
+   *
+   * this needs to also run all setup functions, it will change to loading a
+   * main menu at some point
    */
   async init_game(): Promise<Record<string, PIXI.Container> | null> {
     this.sprite_sheet = await load_assets(this.options.sprite_sheet_data_path);
@@ -169,7 +178,7 @@ export class Game {
 
     this.render_entities(cur_scene);
 
-    this.game_state = GameState.PlayerTurn;
+    this.game_state = LoopState.PlayerTurn;
 
     if (!compute_fov(this.options.radius, cur_scene, cur_scene.player)) {
       console.error("could not compute fov");
@@ -185,25 +194,17 @@ export class Game {
     }
 
     this.events = [];
+
     this.keys = {};
 
-    this.add_keys();
+    if (!make_default_keys(this.keys, this.events)) {
+      console.error("could not make default keys");
+
+      return null;
+    }
 
     // return the containers to be added by the app
     return this.containers;
-  }
-
-  /** add default keys */
-  add_keys(): boolean {
-    this.keys["w"] = add_key(this.events, "w");
-
-    this.keys["d"] = add_key(this.events, "d");
-
-    this.keys["a"] = add_key(this.events, "a");
-
-    this.keys["s"] = add_key(this.events, "s");
-
-    return true;
   }
 
   /** make the sprite_map from the game_map */
@@ -348,42 +349,26 @@ export class Game {
     const cur_scene = this.scenes.get_scene(this.current_scene);
 
     // if its the players turn
-    if (this.game_state === GameState.PlayerTurn) {
+    if (this.game_state === LoopState.PlayerTurn) {
       let taken = false;
 
       let evt = this.events.shift();
 
       // consume all evt's for this frame
       while (evt !== undefined) {
-        if (evt.type === "keydown") {
-          // case fall though as the default is so fucking stupid
-          switch (evt.key) {
-            case "w":
-              taken = move_up(cur_scene, cur_scene.player);
-              break;
-            case "a":
-              taken = move_left(cur_scene, cur_scene.player);
-              break;
-            case "s":
-              taken = move_down(cur_scene, cur_scene.player);
-              break;
-            case "d":
-              taken = move_right(cur_scene, cur_scene.player);
-              break;
-          }
-        }
+        taken = handle_input(cur_scene, evt);
 
         evt = this.events.shift();
       }
 
       // if the player takes a turn then let ai take a turn
       if (taken) {
-        this.game_state = GameState.AiTurn;
+        this.game_state = LoopState.AiTurn;
       }
     }
 
     // if its the ai's turn
-    if (this.game_state === GameState.AiTurn) {
+    if (this.game_state === LoopState.AiTurn) {
       // reset visibility
       for (let i = 0; i < cur_scene.game_map.data.length; ++i) {
         cur_scene.game_map.data[i].visible = false;
@@ -415,18 +400,23 @@ export class Game {
       }
 
       // let the player take a turn
-      this.game_state = GameState.PlayerTurn;
+      this.game_state = LoopState.PlayerTurn;
     }
 
     return true;
   }
 }
 
+/** start the game
+ *
+ * this will run the game asynchronously, this give async context allowing for
+ * many other thighs like making levels or loading assets to run asynchronously
+ * as well width having to use callbacks/.then
+ */
 export async function start_game(app: PIXI.Application): Promise<void> {
   const opts: GameOpts = {
     sprite_sheet_data_path: "assets/pngs/colored_packed.json",
-    sprite_size: [16, 16],
-    rng_seed: 3333,
+    sprite_size: [16, 16], rng_seed: 3333,
     // 4 will allow the player at least two tiles before seeing a monster
     radius: 4,
   };
@@ -435,16 +425,14 @@ export async function start_game(app: PIXI.Application): Promise<void> {
   const game = new Game(opts);
 
   // wait for the game to load the assets
-  const container = await game.init_game();
+  const containers = await game.init_game();
 
   // test if the game was created correctly
-  if (!container) {
-    return;
-  }
+  if (!containers) {return;}
 
   // add the game containers to the app
-  app.stage.addChild(container["map"]);
-  app.stage.addChild(container["entities"]);
+  app.stage.addChild(containers["map"]);
+  app.stage.addChild(containers["entities"]);
 
   // add the game logic to the app loop
   app.ticker.add(() => {
