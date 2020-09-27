@@ -34,8 +34,6 @@ all assets are from [Kenny's 1-Bit Pack](https://kenney.nl/assets/bit-pack).
 
 ## architecture
 
-### toc
-
 [rendering](#rendering)
 
 [systems](#systems)
@@ -49,7 +47,7 @@ all assets are from [Kenny's 1-Bit Pack](https://kenney.nl/assets/bit-pack).
 the basic architecture more or less follows this
 [roguelike tutorial](http://rogueliketutorials.com/),
 the game systems and component system are adapted to my tastes but should be
-similar in principal. the rendering and input handling is very different as we
+similar in principal. the rendering and input handling is a bit different as we
 need to adapt to [pixi.js](https://www.pixijs.com/) and web technology in
 general.
 
@@ -122,24 +120,16 @@ i think this is ok for a small game
 
 #### building
 
-~~the typescript compiler will build the js files in to the `./dist` directory.~~
-
-~~webpack will pull from the `./dist` directory and create the bundle at
-`./public/main.bundle.js`.~~
-
-webpack will now load and bundle directly from the typescript files making the
+webpack will load and bundle directly from the typescript files making the
 bundle at `./public/app.bundle.js`
 
 once running we then get debugging info from
-[source-map-loader](https://webpack.js.org/loaders/source-map-loader/) but
-it will link back to the built js files
+[source-map-loader](https://webpack.js.org/loaders/source-map-loader/) linking
+back to the typescript files
 
-~~I believe there is a way to set it up to use the typescript files but I
-haven't spent the time so I dont know.~~
-
-at the moment we are bundling `PIXI.js` along with everything else but at some
-point this should change to using pixi's
-[cdn](https://en.wikipedia.org/wiki/Content_delivery_network). maybe a way to
+at the moment we are bundling `PIXI.js` and `React` along with everything else
+but at some point this should change to using
+[cdn's](https://en.wikipedia.org/wiki/Content_delivery_network). maybe a way to
 switch between for development and release (with the cdn).
 
 #### server
