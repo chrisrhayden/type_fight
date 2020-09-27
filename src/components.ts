@@ -8,8 +8,7 @@ import {GameTile} from "./tiles";
  *
  * a way to decide on what actions to take when its the entity's turn
  */
-enum Ai {
-  None,
+export enum Ai {
   Peaceful,
   Enemy,
 }

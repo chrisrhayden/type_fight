@@ -1,5 +1,33 @@
 import {Scene} from "../scenes";
 
+export function move_to(
+  scene: Scene,
+  ent: number | string,
+  pos: number,
+): boolean {
+  if (scene.game_map.data[pos].blocks) {
+    return false;
+  }
+
+  if (pos === scene.components.position[scene.player]) {
+    return false;
+  }
+
+  const entities = Object.entries(scene.components.active_entities);
+
+  for (const [key, ent] of entities) {
+    if (pos === scene.components.position[key]) {
+      if (ent.blocks) {
+        return false;
+      }
+    }
+  }
+
+  scene.components.position[ent] = pos;
+
+  return true;
+}
+
 export function move_by(scene: Scene, ent: number, offset: number): boolean {
   const ent_pos = scene.components.position[ent];
 
