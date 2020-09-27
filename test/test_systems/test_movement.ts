@@ -92,6 +92,7 @@ describe("test movement system", () => {
 
       scene.game_map.data[201] = {
         id: 0,
+        can_see: true,
         blocks: true,
         visible: true,
         visited: false,

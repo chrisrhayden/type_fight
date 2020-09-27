@@ -26,7 +26,14 @@ import {describe, it} from "mocha";
 
 import * as test_map_data from "../test_data_basic_map.json";
 
-import {GameTile, Rect, BasicMap, FeatureGenerator, Entities, Scene} from "../index";
+import {
+  GameTile,
+  Rect,
+  BasicMap,
+  FeatureGenerator,
+  Entities,
+  Scene
+} from "../index";
 
 describe("test basic_map", () => {
   /** unit testing */
