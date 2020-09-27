@@ -44,11 +44,11 @@ all assets are from [Kenny's 1-Bit Pack](https://kenney.nl/assets/bit-pack).
 
 [systems](#systems)
 
-[building](#building\ and\ serving)
+[building](#building-and-serving)
 
 [testing](#testing)
 
-[project layout](#project\ layout)
+[project layout](#project-layout)
 
 the basic architecture more or less follows this
 [roguelike tutorial](http://rogueliketutorials.com/),
