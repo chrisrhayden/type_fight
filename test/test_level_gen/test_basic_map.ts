@@ -28,7 +28,7 @@ import * as test_map_data from "../test_data_basic_map.json";
 
 import {GameTile, Rect, BasicMap, FeatureGenerator, Entities, Scene} from "../index";
 
-describe("testing basic_map", () => {
+describe("test basic_map", () => {
   /** unit testing */
   describe("should make rooms in to a map", () => {
     const seed = 3333;
