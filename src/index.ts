@@ -175,7 +175,7 @@ export class Game {
 
     this.feature_generator = new FeatureGenerator(this.options.rng_seed);
 
-    const game_map = new BasicMap(this.feature_generator, 50, 36)
+    const game_map = new BasicMap(this.feature_generator, 1, 50, 36)
       .make_map(this.entities, cur_scene);
 
     cur_scene.game_map = game_map;
