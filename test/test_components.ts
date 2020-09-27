@@ -6,10 +6,10 @@ import {Components} from "./index";
 describe("test Components", () => {
   const components = new Components();
 
-  describe("should created game map", () => {
-    // TODO: this is kinda useless as javascript doesn't have class level
-    // variable definitions i think
-    it("makes a blank objext in all values", () => {
+  describe("should init correctly", () => {
+    // TODO: this is kinda useless, need a way to enforce class level variable
+    // definitions
+    it("makes a blank objects in all values", () => {
       const entries = Object.values(components);
 
       for (const value of entries) {
