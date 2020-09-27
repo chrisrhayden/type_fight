@@ -11,42 +11,17 @@ import {GameMap} from "./game_map/game_map";
 import {Entities} from "./entities";
 import {add_key} from "./keyboard";
 import {run_ai} from "./systems/ai";
-// import {GameTile} from "./tiles";
 
-/** main game options
- *
- * this may be split up if more runtime options are added
- */
+/** main game options */
 export interface GameOpts {
   // the sprite_sheet url
-  sprite_sheet: string;
+  sprite_sheet_data_path: string;
   // the sprite_sheet w,h
   sprite_size: [number, number];
   // the current rng seed
   rng_seed: number,
   // this is a bit wrong as it adds 1, (i.e. d = (r * 2) + 1)
   radius: number,
-}
-
-/** this is mostly to not have to look up the data again */
-interface AppOpts {
-  // default: 800
-  width?: number,
-  // default: 600
-  height?: number,
-  // default: false
-  antialias?: boolean,
-  // default: false
-  transparent?: boolean,
-  // default: 1
-  resolution?: number,
-}
-
-// get a new pixi app
-export function init_pixi(options: AppOpts): PIXI.Application {
-  const app = new PIXI.Application(options);
-
-  return app;
 }
 
 // TODO: this really needs to be improved
@@ -164,7 +139,7 @@ export class Game {
    * all class variables must be initialized in this function before continuing
    */
   async init_game(): Promise<Record<string, PIXI.Container> | null> {
-    this.sprite_sheet = await load_assets(this.options.sprite_sheet);
+    this.sprite_sheet = await load_assets(this.options.sprite_sheet_data_path);
 
     this.entities = new Entities();
 
@@ -449,10 +424,11 @@ export class Game {
 
 export async function start_game(app: PIXI.Application): Promise<void> {
   const opts: GameOpts = {
-    rng_seed: 3333,
-    sprite_sheet: "assets/pngs/colored_packed.json",
+    sprite_sheet_data_path: "assets/pngs/colored_packed.json",
     sprite_size: [16, 16],
-    radius: 3,
+    rng_seed: 3333,
+    // 4 will allow the player at least two tiles before seeing a monster
+    radius: 4,
   };
 
   // get a new game
