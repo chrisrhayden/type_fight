@@ -15,7 +15,7 @@ import * as PIXI from "pixi.js";
 
 import "./App.css";
 
-import {start_game} from "./index";
+import {start_game, GameData, GameOpts} from "./index";
 
 /** this is mostly to not have to look up the data again */
 type PixiApp = {
@@ -38,6 +38,8 @@ type PixiApp = {
  */
 interface AppProps {
   pixi_context: PIXI.Application,
+    game_opts: GameOpts,
+    game_data: GameData,
 }
 
 /** the html context for the app
@@ -47,7 +49,7 @@ interface AppProps {
  */
 function App(props: AppProps) {
   // start game and it just run
-  start_game(props.pixi_context);
+  start_game(props.pixi_context, props.game_opts, props.game_data);
 
   return (
     <div id="App"></div>
@@ -65,12 +67,24 @@ function main() {
     height: 600,
   };
 
+  const game_opts: GameOpts = {
+    sprite_sheet_data_path: "assets/pngs/colored_packed.json",
+    sprite_size: [16, 16],
+    rng_seed: 3333,
+    // 4 will allow the player at least two tiles before seeing a monster
+    radius: 4,
+  };
+
+  const game_data = new GameData(game_opts.rng_seed);
+
   // make the pixi context, it is just easier to make this global
-  const pixi_app = new PIXI.Application(pixi_opts);
+  const pixi_context = new PIXI.Application(pixi_opts);
 
   // make the props to send to the game context
   const app_props: AppProps = {
-    pixi_context: pixi_app,
+    pixi_context,
+    game_opts,
+    game_data,
   };
 
   // TODO: find out if this is synchronous, i think so

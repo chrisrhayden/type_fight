@@ -85,6 +85,23 @@ function compute_fov(radius: number, scene: Scene, ent: number): boolean {
   return true;
 }
 
+export class GameData {
+  // a class containing the game scenes
+  scenes: Scenes;
+  // a class to make unique entities
+  entities: Entities;
+  // a class to abstract the making of game features like monsters and items
+  feature_generator: FeatureGenerator;
+
+  constructor(seed: number) {
+    this.entities = new Entities();
+
+    this.scenes = new Scenes();
+
+    this.feature_generator = new FeatureGenerator(seed);
+  }
+}
+
 // this is just flow control for the main game loop
 enum LoopState {
   PlayerTurn,
@@ -99,33 +116,19 @@ enum LoopState {
  */
 export class Game {
   options: GameOpts;
+  game_data: GameData;
+
+  // the current sprite_sheet that everything will be drawn from
+  sprite_sheet: PIXI.Spritesheet;
 
   // display containers, sprites are add to a container and pixi will draw them
   // from there
   containers: Record<string, PIXI.Container>;
 
-  // the current sprite_sheet that everything will be drawn from
-  sprite_sheet: PIXI.Spritesheet;
-
   // the sprites for the map
   sprite_map: PIXI.Sprite[];
-
   // a cache for entity sprites
   entity_sprites: Record<number, PIXI.Sprite>;
-
-  // a class containing the game scenes
-  scenes: Scenes;
-
-  // a class to make unique entities
-  entities: Entities;
-
-  feature_generator: FeatureGenerator;
-
-  // the current scene being used
-  current_scene: number;
-
-  // the game loop state
-  game_state: LoopState;
 
   // the input events from the user
   events: KeyboardEvent[];
@@ -133,9 +136,17 @@ export class Game {
   // the registered keys
   keys: Record<string, () => void>;
 
-  // just set the options and the init_game function will load the data
-  constructor(game_opts: GameOpts) {
+  // the current scene being used
+  current_scene: number;
+
+  // the game loop state
+  game_state: LoopState;
+
+  // just set the options and the init_game function will actually load the data
+  constructor(game_opts: GameOpts, game_data: GameData) {
     this.options = game_opts;
+
+    this.game_data = game_data;
   }
 
   /** the real constructor
@@ -150,18 +161,12 @@ export class Game {
   async init_game(): Promise<Record<string, PIXI.Container> | null> {
     this.sprite_sheet = await load_assets(this.options.sprite_sheet_data_path);
 
-    this.entities = new Entities();
+    this.current_scene = this.game_data.scenes.new_scene();
 
-    this.scenes = new Scenes();
+    const cur_scene = this.game_data.scenes.get_scene(this.current_scene);
 
-    this.current_scene = this.scenes.new_scene();
-
-    const cur_scene = this.scenes.get_scene(this.current_scene);
-
-    this.feature_generator = new FeatureGenerator(this.options.rng_seed);
-
-    const game_map = new BasicMap(this.feature_generator, 1, 50, 36)
-      .make_map(this.entities, cur_scene);
+    const game_map = new BasicMap(this.game_data.feature_generator, 1, 50, 36)
+      .make_map(this.game_data.entities, cur_scene);
 
     cur_scene.game_map = game_map;
 
@@ -180,19 +185,6 @@ export class Game {
 
     this.game_state = LoopState.PlayerTurn;
 
-    if (!compute_fov(this.options.radius, cur_scene, cur_scene.player)) {
-      console.error("could not compute fov");
-
-      return null;
-    }
-
-
-    if (!this.render_map(cur_scene)) {
-      console.error("could not render the map");
-
-      return null;
-    }
-
     this.events = [];
 
     this.keys = {};
@@ -203,15 +195,30 @@ export class Game {
       return null;
     }
 
+    if (!compute_fov(this.options.radius, cur_scene, cur_scene.player)) {
+      console.error("could not compute fov");
+
+      return null;
+    }
+
+    if (!this.render_map(cur_scene)) {
+      console.error("could not render the map");
+
+      return null;
+    }
+
+    if (!this.render_entities(cur_scene)) {
+      console.error("could not render the entities");
+
+      return null;
+    }
+
     // return the containers to be added by the app
     return this.containers;
   }
 
   /** make the sprite_map from the game_map */
   make_sprite_map(game_map: GameMap): boolean {
-    // get the sprite size to correctly increment the x,y axis
-    const [tile_w, tile_h] = this.options.sprite_size;
-
     // so we can offset the map
     const start = 0;
 
@@ -233,7 +240,7 @@ export class Game {
 
         x = start;
 
-        y += tile_h;
+        y += this.options.sprite_size[1];
       }
 
       // set the sprite_map to the given Sprite
@@ -251,7 +258,7 @@ export class Game {
       // add the sprite to the map_container so it will get added to the app
       this.containers["map"].addChild(this.sprite_map[i]);
 
-      x += tile_w;
+      x += this.options.sprite_size[0];
       row_count += 1;
     }
 
@@ -346,7 +353,7 @@ export class Game {
    */
   game_tick(): boolean {
     // grab the current scene
-    const cur_scene = this.scenes.get_scene(this.current_scene);
+    const cur_scene = this.game_data.scenes.get_scene(this.current_scene);
 
     // if its the players turn
     if (this.game_state === LoopState.PlayerTurn) {
@@ -354,7 +361,9 @@ export class Game {
 
       let evt = this.events.shift();
 
-      // consume all evt's for this frame
+      // consume all evt's for this frame, this could be changed to only allow
+      // for one thing to happen as its possible i think to get more the one
+      // key press a frame
       while (evt !== undefined) {
         taken = handle_input(cur_scene, evt);
 
@@ -414,16 +423,13 @@ export class Game {
  * many other thighs like making levels or loading assets to run asynchronously
  * as well width having to use callbacks/.then
  */
-export async function start_game(app: PIXI.Application): Promise<void> {
-  const opts: GameOpts = {
-    sprite_sheet_data_path: "assets/pngs/colored_packed.json",
-    sprite_size: [16, 16], rng_seed: 3333,
-    // 4 will allow the player at least two tiles before seeing a monster
-    radius: 4,
-  };
-
+export async function start_game(
+  app: PIXI.Application,
+  game_opts: GameOpts,
+  game_data: GameData
+): Promise<void> {
   // get a new game
-  const game = new Game(opts);
+  const game = new Game(game_opts, game_data);
 
   // wait for the game to load the assets
   const containers = await game.init_game();
