@@ -1,8 +1,19 @@
+/** a generator and rng store
+ *
+ * this will wrap a seeded rng to got the game to use
+ *
+ * this has a few convenience functions to help make entities
+ */
 import * as ROT from "rot-js";
 import * as RNG from "rot-js/lib/rng";
 
 import {BaseEntity} from "./components";
 import {GameTile} from "./tiles";
+
+interface FeatureGeneratorOpts {
+  monsters: Record<number, GameTile[]>,
+  chance: Record<number, number>,
+}
 
 const default_monsters = {
   1: [GameTile.Ogre, GameTile.Skeleton],
@@ -13,22 +24,25 @@ const default_chance = {
 };
 
 export class FeatureGenerator {
-  monsters: Record<number, GameTile[]>;
-  chance: Record<number, number>;
+  options: FeatureGeneratorOpts;
 
   rng: typeof RNG.default;
 
   constructor(seed: number) {
-    this.monsters = default_monsters;
-    this.chance = default_chance;
+    // this can be loaded from a file a some point
+    this.options = {
+      monsters: default_monsters,
+      chance: default_chance,
+    };
 
     this.rng = ROT.RNG;
 
     this.rng.setSeed(seed);
   }
 
+  // if a level generator should make a monster
   monster_by_difficulty(difficulty: number): boolean {
-    if (this.rng.getPercentage() >= this.chance[difficulty]) {
+    if (this.rng.getPercentage() >= this.options.chance[difficulty]) {
       return true;
     } else {
       return false;
@@ -36,7 +50,7 @@ export class FeatureGenerator {
   }
 
   make_enemy(difficulty: number): BaseEntity {
-    const monster = this.rng.getItem(this.monsters[difficulty]);
+    const monster = this.rng.getItem(this.options.monsters[difficulty]);
 
     return {
       blocks: true,

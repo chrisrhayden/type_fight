@@ -41,12 +41,12 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
   });
 }
 
-/** run rot-js.fov.PreciseShadowcasting
+/** compute fov
  *
  * use rot-js's precise shadowcasting algorithm
  */
 function compute_fov(radius: number, scene: Scene, ent: number): boolean {
-  // light_passes is a predicate if light passes
+  // if light_passes the cell
   const light_passes = (x: number, y: number): boolean => {
     const indx = x + (scene.game_map.width * y);
 
@@ -361,7 +361,7 @@ export class Game {
         evt = this.events.shift();
       }
 
-      // if the player takes a turn then let ai take a turn
+      // if the player has taken a turn then let ai take a turn
       if (taken) {
         this.game_state = LoopState.AiTurn;
       }
@@ -381,6 +381,7 @@ export class Game {
         return false;
       }
 
+      // ai should be run before rendering
       if (!run_ai(cur_scene)) {
         console.error("could not run ai");
 
@@ -399,7 +400,7 @@ export class Game {
         return false;
       }
 
-      // let the player take a turn
+      // make sure to let the player take a turn next frame
       this.game_state = LoopState.PlayerTurn;
     }
 
@@ -428,7 +429,9 @@ export async function start_game(app: PIXI.Application): Promise<void> {
   const containers = await game.init_game();
 
   // test if the game was created correctly
-  if (!containers) {return;}
+  if (!containers) {
+    return;
+  }
 
   // add the game containers to the app
   app.stage.addChild(containers["map"]);

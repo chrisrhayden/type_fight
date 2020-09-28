@@ -20,7 +20,7 @@ export function make_default_keys(
 
 /** make a key handler */
 export function add_key(event_queue: Event[], key_str: string): () => void {
-  const down_handle = (event: KeyboardEvent) => {
+  const up_handle = (event: KeyboardEvent) => {
     if (event.key === key_str) {
       event_queue.push(event);
 
@@ -28,7 +28,7 @@ export function add_key(event_queue: Event[], key_str: string): () => void {
     }
   };
 
-  const up_handle = (event: KeyboardEvent) => {
+  const down_handle = (event: KeyboardEvent) => {
     if (event.key === key_str) {
       event_queue.push(event);
 
@@ -38,13 +38,12 @@ export function add_key(event_queue: Event[], key_str: string): () => void {
 
   // Detach event listeners
   const unsubscribe = function () {
-    window.removeEventListener("keydown", down_handle);
     window.removeEventListener("keyup", up_handle);
+    window.removeEventListener("keydown", down_handle);
   };
 
-  window.addEventListener("keydown", down_handle, false);
-
   window.addEventListener("keyup", up_handle, false);
+  window.addEventListener("keydown", down_handle, false);
 
   return unsubscribe;
 }
