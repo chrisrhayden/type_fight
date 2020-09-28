@@ -13,6 +13,18 @@ export enum Ai {
   Enemy,
 }
 
+export class Health {
+  max_value: number;
+  value: number;
+}
+
+export class BaseStats {
+  // for hitting
+  strength: number;
+  // for not getting hit
+  dexterity: number;
+}
+
 /** a basic entity
  *
  * most entities in the game will have a BaseEntity
@@ -54,8 +66,12 @@ export class Components {
   position: Record<number, number>;
   ai: Record<number, Ai>;
   active_entities: Record<number, BaseEntity>;
+  health: Record<number, Health>;
+  base_stats: Record<number, BaseStats>;
 
   constructor() {
+    this.health = {};
+    this.base_stats = {};
     this.position = {};
     this.ai = {};
     this.active_entities = {};

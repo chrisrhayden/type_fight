@@ -7,8 +7,10 @@
 import * as ROT from "rot-js";
 import * as RNG from "rot-js/lib/rng";
 
-import {BaseEntity} from "./components";
+import {Ai} from "./components";
 import {GameTile} from "./tiles";
+import {Scene} from "./scenes";
+import {Entities} from "./entities";
 
 interface FeatureGeneratorOpts {
   monsters: Record<number, GameTile[]>,
@@ -40,6 +42,26 @@ export class FeatureGenerator {
     this.rng.setSeed(seed);
   }
 
+  make_player(scene: Scene, entities: Entities, x: number, y: number): boolean {
+    const indx = x + (scene.game_map.width * y);
+
+    const player_id = entities.new_id();
+
+    scene.components.position[player_id] = indx;
+
+    scene.components.health[player_id] = {
+      max_value: 10,
+      value: 10,
+    };
+
+    scene.components.base_stats[player_id] = {
+      strength: 1,
+      dexterity: 1,
+    };
+
+    return true;
+  }
+
   // if a level generator should make a monster
   monster_by_difficulty(difficulty: number): boolean {
     if (this.rng.getPercentage() >= this.options.chance[difficulty]) {
@@ -49,14 +71,28 @@ export class FeatureGenerator {
     }
   }
 
-  make_enemy(difficulty: number): BaseEntity {
+  make_enemy(
+    scene: Scene,
+    entities: Entities,
+    x: number,
+    y: number,
+    difficulty: number
+  ): boolean {
+    const ent_id = entities.new_id();
+
+    scene.components.position[ent_id] = x + (scene.game_map.width * y);
+
+    scene.components.ai[ent_id] = Ai.Enemy;
+
     const monster = this.rng.getItem(this.options.monsters[difficulty]);
 
-    return {
+    scene.components.active_entities[ent_id] = {
       blocks: true,
       blocks_light: true,
       renders: true,
       tile: monster,
     };
+
+    return true;
   }
 }

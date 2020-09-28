@@ -94,24 +94,12 @@ export class BasicMap {
         const [new_x, new_y] = new_room.center();
 
         if (num_rooms == 0) {
-          const indx = new_x + (this.map_width * new_y);
-
-          scene.player = entities.new_id();
-
-          scene.components.position[scene.player] = indx;
+          this.feature_generator.make_player(scene, entities, x, y);
 
         } else {
           if (this.feature_generator.monster_by_difficulty(1)) {
-            const ent_id = entities.new_id();
-
-            const ent = this.feature_generator.make_enemy(this.difficulty);
-
-            scene.components.active_entities[ent_id] = ent;
-
-            scene.components.position[ent_id] =
-              new_x + (this.map_width * new_y);
-
-            scene.components.ai[ent_id] = Ai.Enemy;
+            this.feature_generator
+              .make_enemy(scene, entities, x, y, this.difficulty);
           }
 
           const [prev_x, prev_y] = made_rooms[made_rooms.length - 1].center();
