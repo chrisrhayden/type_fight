@@ -56,8 +56,6 @@ export class BasicMap {
   make_map(entities: Entities, scene: Scene): GameMap {
     const game_map = new GameMap(this.map_width, this.map_height);
 
-    game_map.data = Array(game_map.width * game_map.height);
-
     for (let i = 0; i < game_map.data.length; ++i) {
       game_map.data[i] = new TerrainData(GameTile.WallOne, true);
     }
@@ -98,7 +96,7 @@ export class BasicMap {
           this.feature_generator.make_player(scene, entities, center_indx);
 
         } else {
-          if (this.feature_generator.monster_by_difficulty(1)) {
+          if (this.feature_generator.enemy_by_difficulty(1)) {
             this.feature_generator
               .make_enemy(scene, entities, center_indx, this.difficulty);
           }
