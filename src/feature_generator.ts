@@ -27,7 +27,6 @@ const default_chance = {
 
 export class FeatureGenerator {
   options: FeatureGeneratorOpts;
-
   rng: typeof RNG.default;
 
   constructor(seed: number) {
@@ -38,14 +37,17 @@ export class FeatureGenerator {
     };
 
     this.rng = ROT.RNG;
-
     this.rng.setSeed(seed);
   }
 
-  make_player(scene: Scene, entities: Entities, x: number, y: number): boolean {
-    const indx = x + (scene.game_map.width * y);
-
+  make_player(
+    scene: Scene,
+    entities: Entities,
+    indx: number
+  ): boolean {
     const player_id = entities.new_id();
+
+    scene.player = player_id;
 
     scene.components.position[player_id] = indx;
 
@@ -64,33 +66,28 @@ export class FeatureGenerator {
 
   // if a level generator should make a monster
   monster_by_difficulty(difficulty: number): boolean {
-    if (this.rng.getPercentage() >= this.options.chance[difficulty]) {
-      return true;
-    } else {
-      return false;
-    }
+    return this.rng.getPercentage() >= this.options.chance[difficulty];
   }
 
   make_enemy(
     scene: Scene,
     entities: Entities,
-    x: number,
-    y: number,
+    indx: number,
     difficulty: number
   ): boolean {
     const ent_id = entities.new_id();
 
-    scene.components.position[ent_id] = x + (scene.game_map.width * y);
+    scene.components.position[ent_id] = indx;
 
     scene.components.ai[ent_id] = Ai.Enemy;
 
-    const monster = this.rng.getItem(this.options.monsters[difficulty]);
+    const tile = this.rng.getItem(this.options.monsters[difficulty]);
 
     scene.components.active_entities[ent_id] = {
       blocks: true,
       blocks_light: true,
       renders: true,
-      tile: monster,
+      tile,
     };
 
     return true;
