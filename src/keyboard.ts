@@ -1,10 +1,4 @@
-/** a keyboard handler
- *
- * this is basically entirely taken from
- * https://github.com/kittykatattack/learningPixi
- *
- * NOTE: this will change at some point to handle input in the main game loop
- */
+/** a keyboard handler */
 
 export function make_default_keys(
   keys: Record<string, () => void>,
@@ -14,6 +8,20 @@ export function make_default_keys(
   keys["d"] = add_key(events, "d");
   keys["a"] = add_key(events, "a");
   keys["s"] = add_key(events, "s");
+
+  // up-right
+  keys["e"] = add_key(events, "e");
+  // up-left
+  keys["q"] = add_key(events, "q");
+  // down-right
+  keys["x"] = add_key(events, "x");
+  // down-left
+  keys["z"] = add_key(events, "z");
+
+  keys["ArrowUp"] = add_key(events, "ArrowUp");
+  keys["ArrowDown"] = add_key(events, "ArrowDown");
+  keys["ArrowLeft"] = add_key(events, "ArrowLeft");
+  keys["ArrowRight"] = add_key(events, "ArrowRight");
 
   return true;
 }
