@@ -15,15 +15,12 @@ import {GameMap, TerrainData} from "../game_map/game_map";
 import {GameTile} from "../tiles";
 import {Scene} from "../scenes";
 import {Entities} from "../entities";
-import {Ai} from "../components";
 
 export class BasicMap {
   // number tiles across
   map_width: number;
   // number tiles high
   map_height: number
-
-  game_map: GameMap;
 
   max_rooms: number;
 
@@ -53,16 +50,18 @@ export class BasicMap {
 
     this.min_room_size = 5;
     this.max_room_size = 10;
-
-    this.game_map = new GameMap(this.map_width, this.map_height);
-
-    for (let i = 0; i < this.game_map.data.length; ++i) {
-      this.game_map.data[i] = new TerrainData(GameTile.WallOne, true);
-    }
   }
 
 
   make_map(entities: Entities, scene: Scene): GameMap {
+    const game_map = new GameMap(this.map_width, this.map_height);
+
+    game_map.data = Array(game_map.width * game_map.height);
+
+    for (let i = 0; i < game_map.data.length; ++i) {
+      game_map.data[i] = new TerrainData(GameTile.WallOne, true);
+    }
+
     const made_rooms: Rect[] = [];
 
     let num_rooms = 0;
@@ -89,28 +88,30 @@ export class BasicMap {
       }
 
       if (!intersects) {
-        this.create_room(new_room);
+        this.create_room(game_map, new_room);
 
         const [new_x, new_y] = new_room.center();
 
+        const center_indx = new_x + (this.map_width * new_y);
+
         if (num_rooms == 0) {
-          this.feature_generator.make_player(scene, entities, x, y);
+          this.feature_generator.make_player(scene, entities, center_indx);
 
         } else {
           if (this.feature_generator.monster_by_difficulty(1)) {
             this.feature_generator
-              .make_enemy(scene, entities, x, y, this.difficulty);
+              .make_enemy(scene, entities, center_indx, this.difficulty);
           }
 
           const [prev_x, prev_y] = made_rooms[made_rooms.length - 1].center();
 
           if (this.rng.getUniform() > 0.5) {
-            this.create_h_tunnel(prev_x, new_x, prev_y);
-            this.create_v_tunnel(prev_y, new_y, new_x);
+            this.create_h_tunnel(game_map, prev_x, new_x, prev_y);
+            this.create_v_tunnel(game_map, prev_y, new_y, new_x);
 
           } else {
-            this.create_v_tunnel(prev_y, new_y, prev_x);
-            this.create_h_tunnel(prev_x, new_x, new_y);
+            this.create_v_tunnel(game_map, prev_y, new_y, prev_x);
+            this.create_h_tunnel(game_map, prev_x, new_x, new_y);
           }
         }
 
@@ -120,40 +121,40 @@ export class BasicMap {
       }
     }
 
-    return this.game_map;
+    return game_map;
   }
 
 
-  create_room(room: Rect): void {
+  create_room(game_map: GameMap, room: Rect): void {
     for (let x = room.x1 + 1; x < room.x2; ++x) {
       for (let y = room.y1 + 1; y < room.y2; ++y) {
         const indx = (x + (this.map_width * y));
 
-        this.game_map.data[indx] = new TerrainData(GameTile.Nothing, false);
+        game_map.data[indx] = new TerrainData(GameTile.Nothing, false);
       }
     }
   }
 
 
-  create_h_tunnel(x1: number, x2: number, y: number): void {
+  create_h_tunnel(game_map: GameMap, x1: number, x2: number, y: number): void {
     const x_min = Math.min(x1, x2);
     const x_max = Math.max(x1, x2);
 
     for (let x = x_min; x < x_max + 1; ++x) {
       const indx = (x + (this.map_width * y));
 
-      this.game_map.data[indx] = new TerrainData(GameTile.Nothing, false);
+      game_map.data[indx] = new TerrainData(GameTile.Nothing, false);
     }
   }
 
-  create_v_tunnel(y1: number, y2: number, x: number): void {
+  create_v_tunnel(game_map: GameMap, y1: number, y2: number, x: number): void {
     const y_min = Math.min(y1, y2);
     const y_max = Math.max(y1, y2);
 
     for (let y = y_min; y < y_max + 1; ++y) {
       const indx = (x + (this.map_width * y));
 
-      this.game_map.data[indx] = new TerrainData(GameTile.Nothing, false);
+      game_map.data[indx] = new TerrainData(GameTile.Nothing, false);
     }
   }
 }

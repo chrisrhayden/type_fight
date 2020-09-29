@@ -27,12 +27,14 @@ import {describe, it} from "mocha";
 import * as test_map_data from "../test_data_basic_map.json";
 
 import {
+  GameMap,
   GameTile,
   Rect,
   BasicMap,
   FeatureGenerator,
   Entities,
-  Scene
+  Scene,
+  TerrainData,
 } from "../index";
 
 describe("test basic_map", () => {
@@ -47,40 +49,55 @@ describe("test basic_map", () => {
 
 
     it("makes a room correclty", () => {
-      const basic_map = new BasicMap(feature, width, height);
+      const basic_map = new BasicMap(feature, 1, width, height);
 
-      const made_tiles = Array(100).fill(GameTile.WallOne);
+      const tile_array = Array(100);
+
+      for (let i = 0; i < tile_array.length; ++i) {
+        tile_array[i] = new TerrainData(GameTile.WallOne, true);
+      }
 
       // carve a 8,8 square in to the made_tiles
       for (let y = 2; y < 9; ++y) {
         for (let x = 2; x < 9; ++x) {
           const indx = x + (10 * y);
 
-          made_tiles[indx] = GameTile.Nothing;
+          tile_array[indx] = new TerrainData(GameTile.Nothing, false);
         }
       }
 
+      const test_map = new GameMap(10, 10);
+
+      test_map.data = Array(10 * 10);
+
+      for (let i = 0; i < test_map.data.length; ++i) {
+        test_map.data[i] = new TerrainData(GameTile.WallOne, true);
+      }
 
       const room = new Rect(1, 1, 8, 8);
 
-      basic_map.create_room(room);
+      basic_map.create_room(test_map, room);
 
       for (let y = 0; y < 10; ++y) {
         for (let x = 0; x < 10; ++x) {
           const indx = x + (10 * y);
 
           assert.ok(
-            basic_map.game_map.data[indx].tile === made_tiles[indx],
-            "did make a room coreclty");
+            test_map.data[indx].tile === tile_array[indx].tile,
+            "did make a room coreclty"
+          );
         }
-
       }
     });
 
     it("makes a horizontal hallway correclty", () => {
-      const basic_map = new BasicMap(feature, width, height);
+      const basic_map = new BasicMap(feature, 1, width, height);
 
-      const made_tiles = Array(100).fill(GameTile.WallOne);
+      const tile_array = Array(100);
+
+      for (let i = 0; i < tile_array.length; ++i) {
+        tile_array[i] = new TerrainData(GameTile.WallOne, true);
+      }
 
       const y = 2;
 
@@ -88,26 +105,37 @@ describe("test basic_map", () => {
       for (let x = 1; x < 9; ++x) {
         const indx = x + (10 * y);
 
-        made_tiles[indx] = GameTile.Nothing;
+        tile_array[indx] = new TerrainData(GameTile.Nothing, false);
       }
 
-      basic_map.create_h_tunnel(1, 8, 2);
+      const test_map = new GameMap(10, 10);
+
+      for (let i = 0; i < test_map.data.length; ++i) {
+        test_map.data[i] = new TerrainData(GameTile.WallOne, true);
+      }
+
+      basic_map.create_h_tunnel(test_map, 1, 8, 2);
 
       for (let y = 0; y < 10; ++y) {
         for (let x = 0; x < 10; ++x) {
           const indx = x + (10 * y);
 
           assert.ok(
-            basic_map.game_map.data[indx].tile === made_tiles[indx],
-            "did make a horizontal hallway coreclty");
+            test_map.data[indx].tile === tile_array[indx].tile,
+            "did not make a horizontal hallway coreclty"
+          );
         }
       }
     });
 
     it("makes a vertical hallway correclty", () => {
-      const basic_map = new BasicMap(feature, width, height);
+      const basic_map = new BasicMap(feature, 1, width, height);
 
-      const made_tiles = Array(100).fill(GameTile.WallOne);
+      const tile_array = Array(100);
+
+      for (let i = 0; i < tile_array.length; ++i) {
+        tile_array[i] = new TerrainData(GameTile.WallOne, true);
+      }
 
       const x = 2;
 
@@ -115,23 +143,31 @@ describe("test basic_map", () => {
       for (let y = 1; y < 9; ++y) {
         const indx = x + (10 * y);
 
-        made_tiles[indx] = GameTile.Nothing;
+        tile_array[indx] = new TerrainData(GameTile.Nothing, false);
       }
 
-      basic_map.create_v_tunnel(1, 8, 2);
+      const test_map = new GameMap(10, 10);
+
+      test_map.data = Array(10 * 10);
+
+      for (let i = 0; i < test_map.data.length; ++i) {
+        test_map.data[i] = new TerrainData(GameTile.WallOne, true);
+      }
+
+      basic_map.create_v_tunnel(test_map, 1, 8, 2);
 
       for (let y = 0; y < 10; ++y) {
         for (let x = 0; x < 10; ++x) {
           const indx = x + (10 * y);
 
           assert.ok(
-            basic_map.game_map.data[indx].tile === made_tiles[indx],
-            "did make a vertical hallway coreclty");
+            test_map.data[indx].tile === tile_array[indx].tile,
+            "did not make a vertical hallway coreclty"
+          );
         }
       }
     });
   });
-
 
   /** integration testing */
   describe("should make a full level correctly", () => {
@@ -143,7 +179,7 @@ describe("test basic_map", () => {
     const entitys = new Entities();
     const scene = new Scene();
 
-    const basic_map = new BasicMap(feature, width, height);
+    const basic_map = new BasicMap(feature, 1, width, height);
 
     const made_map = basic_map.make_map(entitys, scene);
 
@@ -164,8 +200,7 @@ describe("test basic_map", () => {
           // assert that the basic_map generator makes the same map given the
           // the same seed
           assert.ok(
-            made_map.data[indx].tile
-            === test_map_data.data[indx].tile,
+            made_map.data[indx].tile === test_map_data.data[indx].tile,
             "did not make map correctly with a given seed");
         }
       }
