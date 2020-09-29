@@ -1,23 +1,89 @@
 import {Scene} from "../scenes";
-import {
-  move_up,
-  move_down,
-  move_left,
-  move_right
-} from "./movement";
+import {move_to} from "./movement";
+import {Ai} from "../components";
+import {attack_ent} from "./attack";
+
+function move_or_attack(scene: Scene, indx: number): boolean {
+  if (move_to(scene, scene.player, indx) === false) {
+    const pos_iter = Object.entries(scene.components.position);
+
+    let other_ent = "0";
+
+    for (const [other_id, other_pos] of pos_iter) {
+
+      if (indx === other_pos) {
+        other_ent = other_id;
+      }
+
+    }
+
+    if ((other_ent in scene.components.ai) === false) {
+      return false;
+    }
+
+    if (scene.components.ai[other_ent] === Ai.Enemy) {
+      return attack_ent(scene, scene.player, other_ent);
+    }
+  }
+
+  return true;
+}
 
 export function handle_input(scene: Scene, evt: KeyboardEvent): boolean {
   if (evt.type === "keydown") {
-    // case fall though as the default is so fucking stupid
+    let new_pos = -1;
+
     switch (evt.key) {
+      // up
+      case "ArrowUp":
       case "w":
-        return move_up(scene, scene.player);
+        new_pos =
+          scene.components.position[scene.player] - scene.game_map.width;
+        break;
+      // left
+      case "ArrowLeft":
       case "a":
-        return move_left(scene, scene.player);
+        new_pos = scene.components.position[scene.player] - 1;
+        break;
+      case "ArrowDown":
       case "s":
-        return move_down(scene, scene.player);
+        new_pos =
+          scene.components.position[scene.player] + scene.game_map.width;
+        break;
+      // right
+      case "ArrowRight":
       case "d":
-        return move_right(scene, scene.player);
+        new_pos = scene.components.position[scene.player] + 1;
+        break;
+      // up-right
+      case "e":
+        new_pos =
+          (scene.components.position[scene.player] - scene.game_map.width) + 1;
+        break;
+      // up-left
+      case "q":
+        new_pos =
+          (scene.components.position[scene.player] - scene.game_map.width) - 1;
+        break;
+      // down-right
+      case "x":
+        new_pos =
+          (scene.components.position[scene.player] + scene.game_map.width) + 1;
+        break;
+      // down-left
+      case "z":
+        new_pos =
+          (scene.components.position[scene.player] + scene.game_map.width) - 1;
+        break;
+    }
+
+
+    if (new_pos !== -1) {
+      return move_or_attack(scene, new_pos);
     }
   }
+
+  return false;
 }
+
+

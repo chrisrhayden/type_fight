@@ -17,13 +17,13 @@ function main(): void {
 
   const scene = new Scene();
 
-  const basic_map = new BasicMap(feature, width, height);
+  const basic_map = new BasicMap(feature, 1, width, height);
 
   const made_map = basic_map.make_map(entitys, scene);
 
 
-  fs.writeFileSync("./test/test_data_basic_map.json",
-    JSON.stringify(made_map));
+  fs.writeFileSync("./test_data_basic_map.json",
+    JSON.stringify(made_map, null, 4));
 
   return;
 }

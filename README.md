@@ -19,8 +19,8 @@ to start the dev server and click the link printed out
 
 `yarn run http-server`
 
-[nodemon](https://nodemon.io/) can also be used to rerun the compiler, webpack
-and the server when source code is saved/changed
+[nodemon](https://nodemon.io/) can also be used to rerun the webpack and the
+server when source code is saved/changed
 
 `yarn run nodemon --exec ./utils/run_server.sh`
 
@@ -52,34 +52,19 @@ need to adapt to [pixi.js](https://www.pixijs.com/) and web technology in
 general.
 
 a lot of other logic and patterns are taken from
-[roguebasin](http://www.roguebasin.com/index.php?title=Main_Page)
-articles, in particular the various algorithms like and
-[shadow casting](http://www.roguebasin.com/index.php?title=Category:FOV).
+[roguebasin](http://www.roguebasin.com/index.php?title=Main_Page) articles.
+
+### game data
 
 ### rendering
 
 #### pixi
 
 we are using [pixi.js](https://www.pixijs.com/) for rendering and just add the
-pixi context to the html. we probably will use html and or a javascript
-framework to draw the ui as that seems straight forward.
+pixi context to the html. React will be used for ui.
 
 I dont know the full extent of the pixi library but the
 [basic usage](https://pixijs.io/examples/#/demos-basic/container.js) looks like
-
-1) [load](http://pixijs.download/release/docs/PIXI.Loader.html) some resources
-in to a texture cache
-1) make a [Sprite](http://pixijs.download/release/docs/PIXI.Sprite.html)
-from the loaded textures
-1) add the Sprite to a
-[Container](http://pixijs.download/release/docs/PIXI.Container.html)
-1) [the add the container to the app](https://pixijs.io/examples/#/demos-basic/container.js)
-1) now pixi will take over rendering
-
-from here we will adjust the created "Sprites" and pixi will render them
-correctly on the next update/tick, this very much affects architecture in a
-negative way as we need to maintain the individual `Sprite` data along with the
-internal game state.
 
 at the moment we are trying to keep the pixi data out side the game sate to keep
 the game logic clean and easily modifiable, if it gets out of hand we may need

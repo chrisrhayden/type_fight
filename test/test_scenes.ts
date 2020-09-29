@@ -9,7 +9,7 @@ describe("test Scenes", () => {
   describe("should make new scenes correctly", () => {
     // TODO: this is kinda useless as javascript doesn't have class level
     // variable definitions i think
-    it("starts the id's at one", () => {
+    it("starts the id's at zero", () => {
       assert.ok(scenes.new_id === 0, "does not start id at zero");
     });
 
@@ -45,12 +45,12 @@ describe("test Scene", () => {
   const scenes = new Scenes();
   scenes.new_scene();
 
-  it("makes player start at one", () => {
+  it("makes player start at zero", () => {
     assert.ok(scenes.get_scene(1).player === 0,
-      "makes player at something other then one");
+      "makes player at something other then zero");
   });
 
-  it("makes with a component stor", () => {
+  it("makes with a component store", () => {
     assert.ok(scenes.get_scene(1).components !== undefined,
       "components ar undefined"
     );

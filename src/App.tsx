@@ -1,8 +1,11 @@
 /** App.tsx
  *
- * this tsx file is the main context loading and running the rest of the app,
- * though ./src/index.ts is the main game logic and at some pint a ui context
- * will be added here but will follow a similar pattern as index.ts
+ * this tsx file is the main context for loading and running the rest of the
+ * app, though ./src/index.ts is the main game logic and at some pint a ui
+ * context will be added here but will follow a similar pattern as index.ts
+ *
+ * NOTE: at some point there will be a way to load PIXI and React from their cdn
+ * based off whether it is a dev build or not
  */
 
 import React from "react";
@@ -12,13 +15,9 @@ import * as PIXI from "pixi.js";
 
 import "./App.css";
 
-import {start_game } from "./index";
+import {start_game, GameData, GameOpts} from "./index";
 
-/** this is mostly to not have to look up the data again
- *
- * NOTE: at some point there will be a way to load PIXI and React from there cdn
- * based off whether it is a dev build or not
- */
+/** this is mostly to not have to look up the data again */
 type PixiApp = {
   // default: 800
   width?: number,
@@ -39,16 +38,18 @@ type PixiApp = {
  */
 interface AppProps {
   pixi_context: PIXI.Application,
+    game_opts: GameOpts,
+    game_data: GameData,
 }
 
-/** the main app
+/** the html context for the app
  *
- * this is more or less the main context that will allow the game state and the react
- * state to interact at some point
+ * this is more or less the main context that will allow the game state and the
+ * react state to interact at some point
  */
 function App(props: AppProps) {
   // start game and it just run
-  start_game(props.pixi_context);
+  start_game(props.pixi_context, props.game_opts, props.game_data);
 
   return (
     <div id="App"></div>
@@ -66,12 +67,24 @@ function main() {
     height: 600,
   };
 
+  const game_opts: GameOpts = {
+    sprite_sheet_data_path: "assets/pngs/colored_packed.json",
+    sprite_size: [16, 16],
+    rng_seed: 3333,
+    // 4 will allow the player at least two tiles before seeing a monster
+    radius: 4,
+  };
+
+  const game_data = new GameData(game_opts.rng_seed);
+
   // make the pixi context, it is just easier to make this global
-  const pixi_app = new PIXI.Application(pixi_opts);
+  const pixi_context = new PIXI.Application(pixi_opts);
 
   // make the props to send to the game context
   const app_props: AppProps = {
-    pixi_context: pixi_app,
+    pixi_context,
+    game_opts,
+    game_data,
   };
 
   // TODO: find out if this is synchronous, i think so
@@ -82,5 +95,5 @@ function main() {
   document.getElementById("App").appendChild(app_props.pixi_context.view);
 }
 
-// run the app
+// run the whole project
 main();

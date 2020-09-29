@@ -41,15 +41,14 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
   });
 }
 
-/** run rot-js.fov.PreciseShadowcasting
+/** compute fov
  *
  * use rot-js's precise shadowcasting algorithm
  */
 function compute_fov(radius: number, scene: Scene, ent: number): boolean {
-  // light_passes is a predicate if light passes
+  // if light_passes the cell
   const light_passes = (x: number, y: number): boolean => {
     const indx = x + (scene.game_map.width * y);
-
     if (indx < 0 || indx >= scene.game_map.data.length) {
       return false;
     }
@@ -85,6 +84,27 @@ function compute_fov(radius: number, scene: Scene, ent: number): boolean {
   return true;
 }
 
+/** the main data class
+ *
+ * this class is just a wrapper around the data being used by the game
+ */
+export class GameData {
+  // a class containing the game scenes
+  scenes: Scenes;
+  // a class to make unique entities
+  entities: Entities;
+  // a class to abstract the making of game features like monsters and items
+  feature_generator: FeatureGenerator;
+
+  constructor(seed: number) {
+    this.entities = new Entities();
+
+    this.scenes = new Scenes();
+
+    this.feature_generator = new FeatureGenerator(seed);
+  }
+}
+
 // this is just flow control for the main game loop
 enum LoopState {
   PlayerTurn,
@@ -99,33 +119,19 @@ enum LoopState {
  */
 export class Game {
   options: GameOpts;
+  game_data: GameData;
+
+  // the current sprite_sheet that everything will be drawn from
+  sprite_sheet: PIXI.Spritesheet;
 
   // display containers, sprites are add to a container and pixi will draw them
   // from there
   containers: Record<string, PIXI.Container>;
 
-  // the current sprite_sheet that everything will be drawn from
-  sprite_sheet: PIXI.Spritesheet;
-
   // the sprites for the map
   sprite_map: PIXI.Sprite[];
-
   // a cache for entity sprites
   entity_sprites: Record<number, PIXI.Sprite>;
-
-  // a class containing the game scenes
-  scenes: Scenes;
-
-  // a class to make unique entities
-  entities: Entities;
-
-  feature_generator: FeatureGenerator;
-
-  // the current scene being used
-  current_scene: number;
-
-  // the game loop state
-  game_state: LoopState;
 
   // the input events from the user
   events: KeyboardEvent[];
@@ -133,9 +139,17 @@ export class Game {
   // the registered keys
   keys: Record<string, () => void>;
 
-  // just set the options and the init_game function will load the data
-  constructor(game_opts: GameOpts) {
+  // the current scene being used
+  current_scene: number;
+
+  // the game loop state
+  game_state: LoopState;
+
+  // just set the options and the init_game function will actually load the data
+  constructor(game_opts: GameOpts, game_data: GameData) {
     this.options = game_opts;
+
+    this.game_data = game_data;
   }
 
   /** the real constructor
@@ -150,48 +164,30 @@ export class Game {
   async init_game(): Promise<Record<string, PIXI.Container> | null> {
     this.sprite_sheet = await load_assets(this.options.sprite_sheet_data_path);
 
-    this.entities = new Entities();
+    this.current_scene = this.game_data.scenes.new_scene();
 
-    this.scenes = new Scenes();
+    const cur_scene = this.game_data.scenes.get_scene(this.current_scene);
 
-    this.current_scene = this.scenes.new_scene();
+    const basic_map = new BasicMap(this.game_data.feature_generator, 1, 50, 36);
 
-    const cur_scene = this.scenes.get_scene(this.current_scene);
+    cur_scene.game_map = basic_map.make_map(this.game_data.entities, cur_scene);
 
-    this.feature_generator = new FeatureGenerator(this.options.rng_seed);
-
-    const game_map = new BasicMap(this.feature_generator, 1, 50, 36)
-      .make_map(this.entities, cur_scene);
-
-    cur_scene.game_map = game_map;
+    if (cur_scene.game_map.data.length === 0) {
+      return null;
+    }
 
     this.containers = {
       map: new PIXI.Container(),
       entities: new PIXI.Container(),
     };
 
-    this.sprite_map = Array(game_map.data.length);
-
-    this.make_sprite_map(game_map);
+    this.make_sprite_map(cur_scene.game_map);
 
     this.entity_sprites = {};
 
     this.render_entities(cur_scene);
 
     this.game_state = LoopState.PlayerTurn;
-
-    if (!compute_fov(this.options.radius, cur_scene, cur_scene.player)) {
-      console.error("could not compute fov");
-
-      return null;
-    }
-
-
-    if (!this.render_map(cur_scene)) {
-      console.error("could not render the map");
-
-      return null;
-    }
 
     this.events = [];
 
@@ -203,14 +199,38 @@ export class Game {
       return null;
     }
 
+    if (!compute_fov(this.options.radius, cur_scene, cur_scene.player)) {
+      console.error("could not compute fov");
+
+      return null;
+    }
+
+    if (!this.render_map(cur_scene)) {
+      console.error("could not render the map");
+
+      return null;
+    }
+
+    if (!this.render_entities(cur_scene)) {
+      console.error("could not render the entities");
+
+      return null;
+    }
+
     // return the containers to be added by the app
     return this.containers;
   }
 
-  /** make the sprite_map from the game_map */
+  /** make the sprite_map from the game_map
+   *
+   * this will make the sprite map array
+   */
   make_sprite_map(game_map: GameMap): boolean {
-    // get the sprite size to correctly increment the x,y axis
-    const [tile_w, tile_h] = this.options.sprite_size;
+    if (game_map.data === undefined || game_map.data.length === 0) {
+      return false;
+    }
+
+    this.sprite_map = Array(game_map.data.length);
 
     // so we can offset the map
     const start = 0;
@@ -233,7 +253,7 @@ export class Game {
 
         x = start;
 
-        y += tile_h;
+        y += this.options.sprite_size[1];
       }
 
       // set the sprite_map to the given Sprite
@@ -251,7 +271,7 @@ export class Game {
       // add the sprite to the map_container so it will get added to the app
       this.containers["map"].addChild(this.sprite_map[i]);
 
-      x += tile_w;
+      x += this.options.sprite_size[0];
       row_count += 1;
     }
 
@@ -287,9 +307,9 @@ export class Game {
   /** update all active entities */
   render_entities(scene: Scene): boolean {
     // get an iterator over the keys and values for the active entities
-    const entries = Object.entries(scene.components.active_entities);
+    const entities = Object.entries(scene.components.active_entities);
 
-    for (const [id, entity] of entries) {
+    for (const [id, entity] of entities) {
       // add the entity if it does not exists
       if ((id in this.entity_sprites) === false) {
         this.entity_sprites[id] = new PIXI.Sprite(
@@ -328,7 +348,7 @@ export class Game {
       this.entity_sprites[scene.player].y = y * this.options.sprite_size[0];
     } else {
       this.entity_sprites[scene.player] = new PIXI.Sprite(
-        this.sprite_sheet["textures"]["27"]
+        this.sprite_sheet["textures"][scene.components.player[scene.player]]
       );
 
       this.entity_sprites[scene.player].x = x * this.options.sprite_size[0];
@@ -346,7 +366,7 @@ export class Game {
    */
   game_tick(): boolean {
     // grab the current scene
-    const cur_scene = this.scenes.get_scene(this.current_scene);
+    const cur_scene = this.game_data.scenes.get_scene(this.current_scene);
 
     // if its the players turn
     if (this.game_state === LoopState.PlayerTurn) {
@@ -354,14 +374,16 @@ export class Game {
 
       let evt = this.events.shift();
 
-      // consume all evt's for this frame
+      // consume all evt's for this frame, this could be changed to only allow
+      // for one thing to happen as its possible i think to get more the one
+      // key press a frame
       while (evt !== undefined) {
         taken = handle_input(cur_scene, evt);
 
         evt = this.events.shift();
       }
 
-      // if the player takes a turn then let ai take a turn
+      // if the player has taken a turn then let ai take a turn
       if (taken) {
         this.game_state = LoopState.AiTurn;
       }
@@ -381,6 +403,7 @@ export class Game {
         return false;
       }
 
+      // ai should be run before rendering
       if (!run_ai(cur_scene)) {
         console.error("could not run ai");
 
@@ -399,7 +422,7 @@ export class Game {
         return false;
       }
 
-      // let the player take a turn
+      // make sure to let the player take a turn next frame
       this.game_state = LoopState.PlayerTurn;
     }
 
@@ -409,26 +432,25 @@ export class Game {
 
 /** start the game
  *
- * this will run the game asynchronously, this give async context allowing for
- * many other thighs like making levels or loading assets to run asynchronously
- * as well width having to use callbacks/.then
+ *.then this give async context allowing for many other thighs like making levels or
+ * loading assets to run asynchronously as well not having to use
+ * callbacks like `.then()`
  */
-export async function start_game(app: PIXI.Application): Promise<void> {
-  const opts: GameOpts = {
-    sprite_sheet_data_path: "assets/pngs/colored_packed.json",
-    sprite_size: [16, 16], rng_seed: 3333,
-    // 4 will allow the player at least two tiles before seeing a monster
-    radius: 4,
-  };
-
+export async function start_game(
+  app: PIXI.Application,
+  game_opts: GameOpts,
+  game_data: GameData
+): Promise<void> {
   // get a new game
-  const game = new Game(opts);
+  const game = new Game(game_opts, game_data);
 
   // wait for the game to load the assets
   const containers = await game.init_game();
 
   // test if the game was created correctly
-  if (!containers) {return;}
+  if (!containers) {
+    return;
+  }
 
   // add the game containers to the app
   app.stage.addChild(containers["map"]);

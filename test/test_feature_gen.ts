@@ -1,24 +1,105 @@
 import * as assert from "assert";
 
-import {FeatureGenerator} from "./index";
+import {GameTile, FeatureGenerator, Scene, Entities} from "./index";
 
+function assert_basic_entity(scene: Scene, id: number | string): boolean {
+  assert.ok((id in scene.components.base_stats), `did not set ${id} base_stats`);
+  assert.ok((id in scene.components.position), `did not set ${id} pos`);
+  assert.ok((id in scene.components.health), `did not set ${id} health`);
+
+  return true;
+}
 
 describe("test feature_generator", () => {
-  const feature_generator = new FeatureGenerator(3333);
+  describe("should make entities correctly", () => {
+    const feature_generator = new FeatureGenerator(3333);
 
-  describe("should init correclty", () => {
-    it("sets seed correctly", () => {
-      const one = feature_generator.rng.getUniform();
+    it("makes a player correctly", () => {
+      const entities = new Entities();
+      const scene = new Scene();
 
-      assert.ok(one === 0.5532654351554811,
-        "did not set seed"
-      );
+      feature_generator.make_player(scene, entities, 1);
 
-      const two = feature_generator.rng.getUniform();
+      assert_basic_entity(scene, 1);
 
-      assert.ok(two === 0.7395488086622208,
-        "did not set seed"
-      );
+      assert.ok((1 in scene.components.player), "did not set player tile");
+    });
+
+    it("makes a monsters correctly", () => {
+      const entities = new Entities();
+      const scene = new Scene();
+
+      feature_generator.make_enemy(scene, entities, 1, 1);
+
+      assert_basic_entity(scene, 1);
+
+      assert.ok((1 in scene.components.ai), "did not set ents ai");
+
+      assert.ok((1 in scene.components.active_entities),
+        "did not set ent in active_entities");
+
+      assert.ok(scene.components.active_entities[1].tile === GameTile.Ogre,
+        "set 1st ent to wrong tile");
+
+      feature_generator.make_enemy(scene, entities, 1, 1);
+
+      assert.ok(scene.components.active_entities[2].tile === GameTile.Skeleton,
+        "set 2nd ent to wrong tile");
+
+      feature_generator.make_enemy(scene, entities, 1, 1);
+
+      assert.ok(scene.components.active_entities[3].tile === GameTile.Skeleton,
+        "set 3rd ent to wrong tile");
+
+      feature_generator.make_enemy(scene, entities, 1, 1);
+
+      assert.ok(scene.components.active_entities[4].tile === GameTile.Skeleton,
+        "set 4th ent to wrong tile");
+
+      feature_generator.make_enemy(scene, entities, 1, 1);
+
+      assert.ok(scene.components.active_entities[5].tile === GameTile.Skeleton,
+        "set 5th ent to wrong tile");
+
+      feature_generator.make_enemy(scene, entities, 1, 1);
+
+      assert.ok(scene.components.active_entities[6].tile === GameTile.Ogre,
+        "set 6th ent to wrong tile");
+
+      feature_generator.make_enemy(scene, entities, 1, 1);
+
+      assert.ok(scene.components.active_entities[7].tile === GameTile.Skeleton,
+        "set 7th ent to wrong tile");
+
+      feature_generator.make_enemy(scene, entities, 1, 1);
+
+      assert.ok(scene.components.active_entities[8].tile === GameTile.Ogre,
+        "set 8th ent to wrong tile");
+
+      feature_generator.make_enemy(scene, entities, 1, 1);
+
+      assert.ok(scene.components.active_entities[9].tile === GameTile.Ogre,
+        "set 9th ent to wrong tile");
+
+      feature_generator.make_enemy(scene, entities, 1, 1);
+
+      assert.ok(scene.components.active_entities[10].tile === GameTile.Skeleton,
+        "set 10th ent to wrong tile");
     });
   });
+
+  // TODO: idk why this changes, like its different on the cli, W.T.F.
+  // describe("should init correclty", () => {
+  //   it("sets seed correctly", () => {
+  //     const one = feature_generator.rng.getUniform();
+  //
+  //     assert.ok(one === 0.6231631832197309,
+  //       "did not set seed"
+  //     );
+  //
+  //     const two = feature_generator.rng.getUniform();
+  //
+  //     assert.ok(two === 0.25837272009812295, "did not set seed");
+  //   });
+  // });
 });

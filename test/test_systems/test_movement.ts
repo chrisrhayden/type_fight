@@ -1,15 +1,11 @@
 import * as assert from "assert";
 
 import {
-  move_by,
-  move_up,
-  move_down,
-  move_left,
-  move_right,
   Scene,
   GameMap,
   TerrainData,
   GameTile,
+  move_to,
 } from "../index";
 
 
@@ -20,73 +16,34 @@ describe("test movement system", () => {
 
   game_map.data.fill(nothing);
 
-  const scene = new Scene();
-
-  scene.game_map = game_map;
-
-  scene.player = 1;
-
 
   describe("should move directions correctly", () => {
-    it("moves by positive", () => {
-      // middle or something idk
-      scene.components.position[1] = 200;
+    const scene = new Scene();
+    scene.game_map = game_map;
+    scene.player = 1;
 
-      move_by(scene, 1, 10);
+    it("moves to the right location within the map", () => {
+      const to_move = 100;
 
-      assert.ok(scene.components.position[1] === 210,
-        "did not move up the game board");
+      assert.ok(move_to(scene, scene.player, to_move), "did not move to space");
+
+      assert.ok(scene.components.position[scene.player] === to_move,
+        "did not set to the right place");
     });
 
-    it("moves by negative", () => {
-      // middle or something idk
-      scene.components.position[1] = 200;
+    it("dose not move out side the map", () => {
+      assert.ok(move_to(scene, scene.player, -1) === false, "moved past zero");
 
-      move_by(scene, 1, -10);
-
-      assert.ok(scene.components.position[1] === 190,
-        "did not move up the game board");
-    });
-
-    it("moves up", () => {
-      // middle or something idk
-      scene.components.position[1] = 200;
-
-      move_up(scene, 1);
-
-      assert.ok(scene.components.position[1] === 180,
-        "did not move up the game board");
-    });
-
-    it("moves down", () => {
-      scene.components.position[1] = 200;
-
-      move_down(scene, 1);
-
-      assert.ok(scene.components.position[1] === 220,
-        "did not move up the game board");
-    });
-
-    it("moves left", () => {
-      scene.components.position[1] = 200;
-
-      move_left(scene, 1);
-
-      assert.ok(scene.components.position[1] === 199,
-        "did not move up the game board");
-    });
-
-    it("moves right", () => {
-      scene.components.position[1] = 200;
-
-      move_right(scene, 1);
-
-      assert.ok(scene.components.position[1] === 201,
-        "did not move up the game board");
+      assert.ok(move_to(scene, scene.player, 400) === false,
+        "moved past map length");
     });
   });
 
   describe("should not move in to blocking things", () => {
+    const scene = new Scene();
+    scene.game_map = game_map;
+    scene.player = 1;
+
     it("stops at a blocking wall", () => {
       scene.components.position[1] = 200;
 
@@ -99,10 +56,11 @@ describe("test movement system", () => {
         tile: GameTile.WallOne,
       };
 
-      const did_move = move_by(scene, 1, 1);
+      const did_move = move_to(scene, 1, 201);
 
-      assert.ok(did_move === false, "the player move in to a blocking entity");
+      assert.ok(did_move === false, "the player moved in to a blocking wall");
     });
+
     it("stops at a blocking entity", () => {
       scene.components.position[1] = 200;
 
@@ -113,11 +71,32 @@ describe("test movement system", () => {
         tile: GameTile.GrassThree,
 
       };
-      scene.components.position[2] = 201;
 
-      const did_move = move_by(scene, 1, 1);
+      scene.components.position[2] = 199;
 
-      assert.ok(did_move === false, "the player move in to a blocking entity");
+      const did_move = move_to(scene, 1, 199);
+
+      assert.ok(did_move === false, "the player moved in to a blocking entity");
+    });
+
+    it("stops at the player", () => {
+      scene.components.position[1] = 200;
+
+      scene.components.active_entities[2] = {
+        blocks: true,
+        blocks_light: true,
+        renders: true,
+        tile: GameTile.GrassThree,
+
+      };
+
+      scene.components.position[2] = 199;
+
+      assert.ok(move_to(scene, 2, 200) === false,
+        "an entity moved in to the player");
+
+      assert.ok(move_to(scene, 1, 200) === false,
+        "the player moved in to the player");
     });
   });
 });
