@@ -1,5 +1,33 @@
 import {Scene} from "../scenes";
-import {move_or_attack} from "./player";
+import {move_to} from "./movement";
+import {Ai} from "../components";
+import {attack_ent} from "./attack";
+
+function move_or_attack(scene: Scene, indx: number): boolean {
+  if (move_to(scene, scene.player, indx) === false) {
+    const pos_iter = Object.entries(scene.components.position);
+
+    let other_ent = "0";
+
+    for (const [other_id, other_pos] of pos_iter) {
+
+      if (indx === other_pos) {
+        other_ent = other_id;
+      }
+
+    }
+
+    if ((other_ent in scene.components.ai) === false) {
+      return false;
+    }
+
+    if (scene.components.ai[other_ent] === Ai.Enemy) {
+      return attack_ent(scene, scene.player, other_ent);
+    }
+  }
+
+  return true;
+}
 
 export function handle_input(scene: Scene, evt: KeyboardEvent): boolean {
   if (evt.type === "keydown") {
@@ -57,3 +85,5 @@ export function handle_input(scene: Scene, evt: KeyboardEvent): boolean {
 
   return false;
 }
+
+
