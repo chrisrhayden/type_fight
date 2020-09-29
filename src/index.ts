@@ -49,14 +49,27 @@ function compute_fov(radius: number, scene: Scene, ent: number): boolean {
   // if light_passes the cell
   const light_passes = (x: number, y: number): boolean => {
     const indx = x + (scene.game_map.width * y);
+
     if (indx < 0 || indx >= scene.game_map.data.length) {
       return false;
     }
 
-    return scene.game_map.data[indx].blocks === false;
+    if (scene.game_map.data[indx].blocks === true) {
+      return false;
+    }
+
+    const entities = Object.entries(scene.components.active_entities);
+
+    for (const [id, ent] of entities) {
+      if (scene.components.position[id] === indx) {
+        return ent.blocks_light === false;
+      }
+    }
+
+    return true;
   };
 
-  // this what to do when once a tile is in the players view
+  // this what to do when once a tile is in the players view and light passes
   const cell_logic = (x: number, y: number, r: number, visibility: number) => {
     const indx = x + (scene.game_map.width * y);
 
