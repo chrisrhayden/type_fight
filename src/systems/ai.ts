@@ -57,7 +57,8 @@ export function run_ai(scene: Scene): boolean {
         ai_path.push([x, y]);
       });
 
-      // TODO: i dont think this is exactly an error
+      // TODO: i think this should always have the start path and the end pasth
+      // node so i think a 0 is an error
       if (ai_path.length === 0) {
         console.error("astart did not reurn a path");
 
@@ -66,7 +67,7 @@ export function run_ai(scene: Scene): boolean {
 
       const next_pos = ai_path[1][0] + (scene.game_map.width * ai_path[1][1]);
 
-      if (!move_to(scene, ai_id, next_pos)) {
+      if (move_to(scene, ai_id, next_pos) === false) {
         // TODO: why else cant a thing move
         if (next_pos !== player_pos) {
           return true;
@@ -76,7 +77,7 @@ export function run_ai(scene: Scene): boolean {
           return true;
         }
 
-        if (!attack_ent(scene, ai_id, scene.player)) {
+        if (attack_ent(scene, ai_id, scene.player) === false) {
           return false;
         }
       }
