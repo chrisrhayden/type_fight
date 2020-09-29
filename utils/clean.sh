@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ -n $(ls -aA ./dist/) ]]; then
+if [[ -n $(ls -aA ./dist/ 2>/dev/null ) ]]; then
     rm -r ./dist/*
 fi
 
