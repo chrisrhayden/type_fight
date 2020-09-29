@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "esModuleInterop": true
+
+    },
+    "include": [
+        "./"
+    ],
+    "exclude": [
+        ".git",
+        "node_modules"
+    ]
+}
