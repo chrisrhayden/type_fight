@@ -49,7 +49,6 @@ function compute_fov(radius: number, scene: Scene, ent: number): boolean {
   // if light_passes the cell
   const light_passes = (x: number, y: number): boolean => {
     const indx = x + (scene.game_map.width * y);
-
     if (indx < 0 || indx >= scene.game_map.data.length) {
       return false;
     }
@@ -85,6 +84,10 @@ function compute_fov(radius: number, scene: Scene, ent: number): boolean {
   return true;
 }
 
+/** the main data class
+ *
+ * this class is just a wrapper around the data being used by the game
+ */
 export class GameData {
   // a class containing the game scenes
   scenes: Scenes;
@@ -165,19 +168,20 @@ export class Game {
 
     const cur_scene = this.game_data.scenes.get_scene(this.current_scene);
 
-    const game_map = new BasicMap(this.game_data.feature_generator, 1, 50, 36)
-      .make_map(this.game_data.entities, cur_scene);
+    const basic_map = new BasicMap(this.game_data.feature_generator, 1, 50, 36);
 
-    cur_scene.game_map = game_map;
+    cur_scene.game_map = basic_map.make_map(this.game_data.entities, cur_scene);
+
+    if (cur_scene.game_map.data.length === 0) {
+      return null;
+    }
 
     this.containers = {
       map: new PIXI.Container(),
       entities: new PIXI.Container(),
     };
 
-    this.sprite_map = Array(game_map.data.length);
-
-    this.make_sprite_map(game_map);
+    this.make_sprite_map(cur_scene.game_map);
 
     this.entity_sprites = {};
 
@@ -217,8 +221,17 @@ export class Game {
     return this.containers;
   }
 
-  /** make the sprite_map from the game_map */
+  /** make the sprite_map from the game_map
+   *
+   * this will make the sprite map array
+   */
   make_sprite_map(game_map: GameMap): boolean {
+    if (game_map.data === undefined || game_map.data.length === 0) {
+      return false;
+    }
+
+    this.sprite_map = Array(game_map.data.length);
+
     // so we can offset the map
     const start = 0;
 
@@ -294,9 +307,9 @@ export class Game {
   /** update all active entities */
   render_entities(scene: Scene): boolean {
     // get an iterator over the keys and values for the active entities
-    const entries = Object.entries(scene.components.active_entities);
+    const entities = Object.entries(scene.components.active_entities);
 
-    for (const [id, entity] of entries) {
+    for (const [id, entity] of entities) {
       // add the entity if it does not exists
       if ((id in this.entity_sprites) === false) {
         this.entity_sprites[id] = new PIXI.Sprite(
@@ -335,7 +348,7 @@ export class Game {
       this.entity_sprites[scene.player].y = y * this.options.sprite_size[0];
     } else {
       this.entity_sprites[scene.player] = new PIXI.Sprite(
-        this.sprite_sheet["textures"]["27"]
+        this.sprite_sheet["textures"][scene.components.player[scene.player]]
       );
 
       this.entity_sprites[scene.player].x = x * this.options.sprite_size[0];
@@ -419,9 +432,9 @@ export class Game {
 
 /** start the game
  *
- * this will run the game asynchronously, this give async context allowing for
- * many other thighs like making levels or loading assets to run asynchronously
- * as well width having to use callbacks/.then
+ *.then this give async context allowing for many other thighs like making levels or
+ * loading assets to run asynchronously as well not having to use
+ * callbacks like `.then()`
  */
 export async function start_game(
   app: PIXI.Application,
