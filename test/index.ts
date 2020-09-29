@@ -7,3 +7,4 @@ export {Scenes, Scene} from "../src/scenes";
 export {Rect} from "../src/game_map/map_utils";
 export {GameTile} from "../src/tiles";
 export {move_to} from "../src/systems/movement";
+// export {Game, GameOpts, GameData} from "../src/index";

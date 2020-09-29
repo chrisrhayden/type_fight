@@ -1,7 +1,7 @@
 {
   "name": "type_fight",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./src/App.tsx",
   "license": "MIT",
   "dependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
@@ -26,9 +26,13 @@
     "ts-loader": "^8.0.4",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.3",
-    "webpack": "^4.44.1"
-  },
-  "devDependencies": {
+    "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
+  },
+  "scripts": {
+      "start": "./utils/run_server.sh",
+      "watch": "yarn run nodemon --exec './utils/run_server.sh'",
+      "test": "./utils/test.sh",
+      "test_cov": "yarn run nyc ./utils/test.sh"
   }
 }

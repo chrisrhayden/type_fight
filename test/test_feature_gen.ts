@@ -38,7 +38,7 @@ describe("test feature_generator", () => {
       assert.ok((1 in scene.components.active_entities),
         "did not set ent in active_entities");
 
-      assert.ok(scene.components.active_entities[1].tile === GameTile.Ogre,
+      assert.ok(scene.components.active_entities[1].tile === GameTile.Skeleton,
         "set 1st ent to wrong tile");
 
       feature_generator.make_enemy(scene, entities, 1, 1);
@@ -48,22 +48,22 @@ describe("test feature_generator", () => {
 
       feature_generator.make_enemy(scene, entities, 1, 1);
 
-      assert.ok(scene.components.active_entities[3].tile === GameTile.Skeleton,
+      assert.ok(scene.components.active_entities[3].tile === GameTile.Ogre,
         "set 3rd ent to wrong tile");
 
       feature_generator.make_enemy(scene, entities, 1, 1);
 
-      assert.ok(scene.components.active_entities[4].tile === GameTile.Skeleton,
+      assert.ok(scene.components.active_entities[4].tile === GameTile.Ogre,
         "set 4th ent to wrong tile");
 
       feature_generator.make_enemy(scene, entities, 1, 1);
 
-      assert.ok(scene.components.active_entities[5].tile === GameTile.Skeleton,
+      assert.ok(scene.components.active_entities[5].tile === GameTile.Ogre,
         "set 5th ent to wrong tile");
 
       feature_generator.make_enemy(scene, entities, 1, 1);
 
-      assert.ok(scene.components.active_entities[6].tile === GameTile.Ogre,
+      assert.ok(scene.components.active_entities[6].tile === GameTile.Skeleton,
         "set 6th ent to wrong tile");
 
       feature_generator.make_enemy(scene, entities, 1, 1);
@@ -73,17 +73,17 @@ describe("test feature_generator", () => {
 
       feature_generator.make_enemy(scene, entities, 1, 1);
 
-      assert.ok(scene.components.active_entities[8].tile === GameTile.Ogre,
+      assert.ok(scene.components.active_entities[8].tile === GameTile.Skeleton,
         "set 8th ent to wrong tile");
 
       feature_generator.make_enemy(scene, entities, 1, 1);
 
-      assert.ok(scene.components.active_entities[9].tile === GameTile.Ogre,
+      assert.ok(scene.components.active_entities[9].tile === GameTile.Skeleton,
         "set 9th ent to wrong tile");
 
       feature_generator.make_enemy(scene, entities, 1, 1);
 
-      assert.ok(scene.components.active_entities[10].tile === GameTile.Skeleton,
+      assert.ok(scene.components.active_entities[10].tile === GameTile.Ogre,
         "set 10th ent to wrong tile");
     });
   });

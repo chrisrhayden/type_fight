@@ -13,7 +13,6 @@ export class TerrainData {
   id: number;
   tile: GameTile;
   blocks: boolean;
-  can_see: boolean;
   // if the tile has been visited before
   visited: boolean;
   // if the tile is in view
@@ -22,7 +21,6 @@ export class TerrainData {
   constructor(tile: GameTile, can_see: boolean) {
     this.id = 0;
     this.tile = tile;
-    this.can_see = can_see;
     this.blocks = can_see;
     this.visible = false;
     this.visited = false;

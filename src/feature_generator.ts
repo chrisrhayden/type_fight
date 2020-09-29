@@ -30,8 +30,8 @@ const default_player = {
     value: 10,
   },
   base_stats: {
-    strength: 1,
-    dexterity: 1,
+    strength: 2,
+    dexterity: 2,
   },
   tile: GameTile.PersonOne,
 };
@@ -129,6 +129,7 @@ export class FeatureGenerator {
 
   get_ent_by_difficulty(difficulty: number): EntityPreFab {
     const percent = this.rng.getPercentage();
+
     if (percent <= 20) {
       return this.options.monsters[difficulty]["20"];
     } else if (percent <= 40) {
