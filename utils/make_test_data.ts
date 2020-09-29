@@ -23,7 +23,7 @@ function main(): void {
 
 
   fs.writeFileSync("./test_data_basic_map.json",
-    JSON.stringify(made_map));
+    JSON.stringify(made_map, null, 4));
 
   return;
 }
