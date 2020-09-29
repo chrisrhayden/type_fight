@@ -63,17 +63,23 @@ export class BaseEntity {
 
 // NOTE: make sure to assign all component hashmap's in the constructor
 export class Components {
-  position: Record<number, number>;
+  player: Record<number, GameTile>;
+
   ai: Record<number, Ai>;
   active_entities: Record<number, BaseEntity>;
+
   health: Record<number, Health>;
   base_stats: Record<number, BaseStats>;
+  position: Record<number, number>;
 
   constructor() {
+    this.player = {};
+
+    this.ai = {};
+    this.active_entities = {};
+
     this.health = {};
     this.base_stats = {};
     this.position = {};
-    this.ai = {};
-    this.active_entities = {};
   }
 }
