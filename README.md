@@ -10,23 +10,29 @@ get the dependency's
 
 `yarn install`
 
-run [webpack](https://webpack.js.org/) to bundle everything together
 
-`yarn run webpack-cli`
-
-now run [http-server](https://github.com/http-party/http-server#readme)
 to start the dev server and click the link printed out
 
-`yarn run http-server`
+`yarn run start`
 
-[nodemon](https://nodemon.io/) can also be used to rerun the webpack and the
+[webpack](https://webpack.js.org/) is used to bundle everything together 
+
+[http-server](https://github.com/http-party/http-server#readme) is used for the
+dev server
+
+[nodemon](https://nodemon.io/) can be used to rerun webpack and the
 server when source code is saved/changed
 
-`yarn run nodemon --exec ./utils/run_server.sh`
+`yarn run watch`
 
 to run the test suite
 
-`yarn run moca --require ts-node/register ./test/**/*.ts`
+`yarn run test`
+
+or to get code coverage with
+[instanbuljs](https://github.com/istanbuljs/istanbuljs)
+
+`yarn run test_cov`
 
 ## assets
 
