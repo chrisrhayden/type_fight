@@ -93,8 +93,6 @@ describe("test handle_input", () => {
     it("attacks entity when moves in to an enemy", () => {
       move_or_attack(scene, 201);
 
-      console.log(">>>>>>>>", mock_move_to.args);
-
       assert.ok(mock_move_to.calledWith(scene, player, 201),
         "did not try and move to index");
 
