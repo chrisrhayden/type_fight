@@ -4,7 +4,11 @@ import {Scenes} from "./index";
 
 
 describe("test Scenes", () => {
-  const scenes = new Scenes();
+  let scenes: Scenes;
+
+  before(() => {
+    scenes = new Scenes();
+  });
 
   describe("should make new scenes correctly", () => {
     // TODO: this is kinda useless as javascript doesn't have class level
@@ -42,8 +46,13 @@ describe("test Scenes", () => {
 });
 
 describe("test Scene", () => {
-  const scenes = new Scenes();
-  scenes.new_scene();
+  let scenes: Scenes;
+
+  before(() => {
+    scenes = new Scenes();
+
+    scenes.new_scene();
+  });
 
   it("makes player start at zero", () => {
     assert.ok(scenes.get_scene(1).player === 0,

@@ -11,11 +11,17 @@ import {
 
 describe("test movement system", () => {
   describe("should move entity correctly", () => {
-    const nothing = new TerrainData(GameTile.Nothing, false);
-    const scene = new Scene();
-    scene.game_map = new GameMap(20, 20);
-    scene.game_map.data.fill(nothing);
-    scene.player = 1;
+    let nothing: TerrainData;
+    let scene: Scene;
+
+    before(() => {
+      nothing = new TerrainData(GameTile.Nothing, false);
+      scene = new Scene();
+
+      scene.game_map = new GameMap(20, 20);
+      scene.game_map.data.fill(nothing);
+      scene.player = 1;
+    });
 
     it("moves to the right location within the map", () => {
       const to_move = 100;
@@ -35,11 +41,17 @@ describe("test movement system", () => {
   });
 
   describe("should move entitys around correctly", () => {
-    const nothing = new TerrainData(GameTile.Nothing, false);
-    const scene = new Scene();
-    scene.game_map = new GameMap(20, 20);
-    scene.game_map.data.fill(nothing);
-    scene.player = 5;
+    let nothing: TerrainData;
+    let scene: Scene;
+
+    before(() => {
+      nothing = new TerrainData(GameTile.Nothing, false);
+      scene = new Scene();
+
+      scene.game_map = new GameMap(20, 20);
+      scene.game_map.data.fill(nothing);
+      scene.player = 5;
+    });
 
     it("entity stops at a blocking tile", () => {
       scene.components.position[1] = 200;

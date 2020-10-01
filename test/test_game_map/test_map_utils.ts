@@ -2,9 +2,12 @@ import * as assert from "assert";
 
 import {Rect} from "../index";
 
-
 describe("test map_utils", () => {
-  const rect = new Rect(1, 1, 9, 9);
+  let rect: Rect;
+
+  before(() => {
+    rect = new Rect(1, 1, 9, 9);
+  });
 
   describe("should create rectangle correctly", () => {
     it("sets x & y correctly", () => {

@@ -11,13 +11,20 @@ function assert_basic_entity(scene: Scene, id: number | string): boolean {
 }
 
 describe("test feature_generator", () => {
+  let feature_generator: FeatureGenerator;
+  let entities: Entities;
+  let scene: Scene;
+
   describe("should make entities correctly", () => {
+    beforeEach(() => {
+      feature_generator = new FeatureGenerator(3333);
+
+      entities = new Entities();
+
+      scene = new Scene();
+    });
+
     it("makes a player correctly", () => {
-      const feature_generator = new FeatureGenerator(3333);
-
-      const entities = new Entities();
-      const scene = new Scene();
-
       feature_generator.make_player(scene, entities, 1);
 
       assert_basic_entity(scene, 1);
@@ -26,11 +33,6 @@ describe("test feature_generator", () => {
     });
 
     it("makes a monsters correctly", () => {
-      const feature_generator = new FeatureGenerator(3333);
-
-      const entities = new Entities();
-      const scene = new Scene();
-
       feature_generator.make_enemy(scene, entities, 1, 1);
 
       assert_basic_entity(scene, 1);

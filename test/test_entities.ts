@@ -4,7 +4,11 @@ import {Entities} from "./index";
 
 
 describe("test Entities", () => {
-  const entries = new Entities();
+  let entries: Entities;
+
+  before(() => {
+    entries = new Entities();
+  });
 
   describe("should create uniq ids", () => {
     it("inits ar zero", () => {

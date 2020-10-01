@@ -4,7 +4,11 @@ import {Components} from "./index";
 
 
 describe("test Components", () => {
-  const components = new Components();
+  let components: Components;
+
+  before(() => {
+    components = new Components();
+  });
 
   describe("should init correctly", () => {
     // TODO: this is kinda useless, need a way to enforce class level variable
