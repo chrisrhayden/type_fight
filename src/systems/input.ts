@@ -3,36 +3,52 @@ import {move_to} from "./movement";
 import {Ai} from "../components";
 import {attack_ent} from "./attack";
 
+/** move the player or try and attack
+ *
+ * this is the logic whether the player will move or attack an entity
+ */
 export function move_or_attack(scene: Scene, indx: number): boolean {
-  if (move_to(scene, scene.player, indx) === false) {
-    const pos_iter = Object.entries(scene.components.position);
+  // if we take a move then we are done
+  if (move_to(scene, scene.player, indx)) {
+    return true;
+  }
 
-    let other_ent = "0";
+  let other_ent = "0";
 
-    for (const [other_id, other_pos] of pos_iter) {
-      if (indx === other_pos) {
-        other_ent = other_id;
-      }
+  const pos_iter = Object.entries(scene.components.position);
+
+  for (const [other_id, other_pos] of pos_iter) {
+    if (indx === other_pos) {
+      other_ent = other_id;
     }
+  }
 
-    if ((other_ent in scene.components.ai) === false) {
-      return false;
-    }
+  // if the other entity does not have an ai then it cant be a target
+  if ((other_ent in scene.components.ai) === false) {
+    return false;
+  }
 
-    if (scene.components.ai[other_ent] === Ai.Enemy) {
-      return attack_ent(scene, scene.player, other_ent);
-    }
+  // if the entity is an Enemy then we can attack
+  if (scene.components.ai[other_ent] === Ai.Enemy) {
+    return attack_ent(scene, scene.player, other_ent);
   }
 
   // player moved
   return true;
 }
 
+/* this is so we dont have to instantiate an enter key object when testing this
+ * function and can just use the required keys
+ */
 export interface TestKey {
   type: string,
   key: string,
 }
 
+/** handle user input
+ *
+ * this is where we will handle input events like keys or mouse clicks
+ */
 export function handle_input(
   scene: Scene,
   evt: KeyboardEvent | TestKey

@@ -46,6 +46,12 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
  * use rot-js's precise shadowcasting algorithm
  */
 function compute_fov(radius: number, scene: Scene, ent: number): boolean {
+  if ((ent in scene.components.position) === false) {
+    console.error("entity does not have a position");
+
+    return false;
+  }
+
   // if light_passes the cell
   const light_passes = (x: number, y: number): boolean => {
     const indx = x + (scene.game_map.width * y);
@@ -59,8 +65,11 @@ function compute_fov(radius: number, scene: Scene, ent: number): boolean {
     }
 
     const entities = Object.entries(scene.components.active_entities);
-
     for (const [id, ent] of entities) {
+      if ((id in scene.components.position) === false) {
+        continue;
+      }
+
       if (scene.components.position[id] === indx) {
         return ent.blocks_light === false;
       }
@@ -79,6 +88,7 @@ function compute_fov(radius: number, scene: Scene, ent: number): boolean {
 
     // visibility could be used to adjust tint at some point
     if (visibility > 0 && r <= radius) {
+      // index will always be in map data if passes the first if, hopefully
       scene.game_map.data[indx].visible = true;
 
       scene.game_map.data[indx].visited = true;
@@ -323,6 +333,11 @@ export class Game {
     const entities = Object.entries(scene.components.active_entities);
 
     for (const [id, entity] of entities) {
+      // dont bother if it doesn't have a position
+      if ((id in scene.components.position) === false) {
+        continue;
+      }
+
       // add the entity if it does not exists
       if ((id in this.entity_sprites) === false) {
         this.entity_sprites[id] = new PIXI.Sprite(
