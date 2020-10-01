@@ -2,7 +2,7 @@ import * as assert from "assert";
 
 import * as sinon from "sinon";
 
-import {GameTile, Ai, make_ent, Scene, GameMap, TerrainData} from "../index";
+import {EntityPreFab, GameTile, Ai, make_ent, Scene, GameMap, TerrainData} from "../index";
 
 import * as ROT from "rot-js";
 import * as Move from "../../src/systems/movement";
@@ -10,73 +10,74 @@ import * as AiSys from "../../src/systems/ai";
 import * as Attack from "../../src/systems/attack";
 
 describe("test ai", () => {
-  const scene = new Scene();
-  scene.game_map = new GameMap(20, 20);
+  let scene: Scene;
+  let run_ai: (scene: Scene) => boolean;
 
-  for (let i = 0; i < scene.game_map.data.length; ++i) {
-    scene.game_map.data[i] = new TerrainData(GameTile.Nothing, false);
-    scene.game_map.data[i].visible = true;
-  }
+  let mock_astar_call: sinon.SinonStub;
+  let mock_move_to: sinon.SinonStub;
+  let mock_attack_ent: sinon.SinonStub;
+
+  // let mock_astar: sinon.SinonStub;
 
   const player_id = 1;
-  // const player_ent = make_ent();
-
-  scene.player = player_id;
-  scene.components.position[player_id] = 200;
+  // let player_ent: EntityPreFab;
 
   const ent_one_id = 2;
-  const ent_one = make_ent();
+  let ent_one: EntityPreFab;
 
-  scene.components.position[ent_one_id] = 202;
-  scene.components.ai[ent_one_id] = Ai.Enemy;
-  scene.components.active_entities[ent_one_id] = ent_one.base_entity;
+  let ai_call: (x: number, y: number) => void;
 
-  describe("should move enemy entities around player correctly", () => {
-    let mock_move_to: sinon.SinonStub;
-    let mock_astar: sinon.SinonStub;
-    let mock_attack_ent: sinon.SinonStub;
+  before(() => {
+    scene = new Scene();
 
-    // let run_ai: (scene: Scene) => boolean;
-    // let mock_ai_sys: sinon.SinonMock;
-    // let mock_astar_call: sinon.SinonStub;
+    scene.game_map = new GameMap(20, 20);
 
-    const mock_ai_sys = sinon.mock(AiSys);
+    for (let i = 0; i < scene.game_map.data.length; ++i) {
+      scene.game_map.data[i] = new TerrainData(GameTile.Nothing, false);
+      scene.game_map.data[i].visible = true;
+    }
 
-    const run_ai = AiSys.run_ai;
+    // player_ent = make_ent();
 
-    const ai_call = AiSys.astar_callback();
+    scene.player = player_id;
+    scene.components.position[player_id] = 200;
+
+    ent_one = make_ent();
+
+    scene.components.position[ent_one_id] = 202;
+    scene.components.ai[ent_one_id] = Ai.Enemy;
+    scene.components.active_entities[ent_one_id] = ent_one.base_entity;
+
+    ai_call = AiSys.astar_callback();
 
     ai_call.prototype.points = [[2, 10], [1, 10], [0, 10]];
 
-    before(() => {
-      mock_astar = sinon.stub(ROT.Path.AStar.prototype, "compute");
+    mock_astar_call = sinon.stub(AiSys, "astar_callback");
 
-      mock_move_to = sinon.stub(Move, "move_to");
+    mock_astar_call.returns(ai_call);
 
-      mock_move_to.returns(false);
+    run_ai = AiSys.run_ai;
 
-      mock_attack_ent = sinon.stub(Attack, "attack_ent");
-    });
+    sinon.stub(ROT.Path.AStar.prototype, "compute");
 
-    beforeEach(() => {
-      // NOTE: idk why but this needs to be called every time
-      const mock_astar_call = mock_ai_sys.expects("astar_callback");
+    mock_move_to = sinon.stub(Move, "move_to");
 
-      mock_astar_call.callsFake(() => {
-        return ai_call;
-      });
+    mock_attack_ent = sinon.stub(Attack, "attack_ent");
+  });
 
-      scene.components.position[player_id] = 200;
+  beforeEach(() => {
+    mock_move_to.returns(false);
 
-      scene.components.position[ent_one_id] = 202;
-    });
+    scene.components.position[player_id] = 200;
 
+    scene.components.position[ent_one_id] = 202;
+  });
+
+  describe("should move enemy entities around player correctly", () => {
     it("enemy moves towards the player", () => {
       mock_move_to.returns(true);
 
       run_ai(scene);
-
-      console.log(mock_move_to.args);
 
       assert.ok(mock_move_to.calledWith(scene, "2", 201),
         "did not make valid move");
@@ -85,10 +86,12 @@ describe("test ai", () => {
     it("does not attack the player if not moving in them", () => {
       run_ai(scene);
 
-      assert.ok(mock_attack_ent.calledOnce === true,
+      assert.ok(mock_attack_ent.called === false,
         "entity did attack the player");
     });
+  });
 
+  describe("should attack player correctly", () => {
     it("enemy attacks thet player instead of moving in to them", () => {
       scene.components.position[player_id] = 201;
 
@@ -107,6 +110,8 @@ describe("test ai", () => {
 
       assert.ok(mock_attack_ent.calledOnce === true,
         "entity did attack the player");
+
+      scene.components.ai[ent_one_id] = Ai.Enemy;
     });
 
     it("returns false if no data added from compute callback", () => {
@@ -118,12 +123,12 @@ describe("test ai", () => {
       assert.ok(mock_attack_ent.calledOnce === true,
         "entity did attack the player");
     });
+  });
 
-    after(() => {
-      mock_astar.restore();
-      mock_move_to.restore();
-      mock_attack_ent.restore();
-      mock_ai_sys.restore();
-    });
+  after(() => {
+    // mock_astar_call.restore();
+    // mock_move_to.restore();
+    // mock_attack_ent.restore();
+    sinon.restore();
   });
 });

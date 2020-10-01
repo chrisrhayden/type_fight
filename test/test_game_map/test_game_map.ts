@@ -7,7 +7,11 @@ describe("test game map", () => {
   const width = 10;
   const height = 10;
 
-  const made_game_map = new GameMap(width, height);
+  let made_game_map: GameMap;
+
+  before(() => {
+    made_game_map = new GameMap(width, height);
+  });
 
   it("set the width & height correctly", () => {
     assert.ok(made_game_map.width === width, "did not set width correctly");

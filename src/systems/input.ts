@@ -4,6 +4,7 @@ import {Ai} from "../components";
 import {attack_ent} from "./attack";
 
 export function move_or_attack(scene: Scene, indx: number): boolean {
+  console.log(">>>>>>>>> wat");
   if (move_to(scene, scene.player, indx) === false) {
     const pos_iter = Object.entries(scene.components.position);
 

@@ -4,29 +4,38 @@ import {
   attack_ent,
   damage_resolve,
   Scene,
-  make_ent
+  make_ent,
+  EntityPreFab
 } from "../index";
 
 describe("test attack system", () => {
-  describe("should attack entities correctly", () => {
-    const scene = new Scene();
+  let scene: Scene;
 
-    const ent_one_id = 2;
-    const ent_one = make_ent();
+  const ent_one_id = 2;
+  let ent_one: EntityPreFab;
+
+  const ent_two_id = 3;
+  let ent_two: EntityPreFab;
+
+  beforeEach(() => {
+    scene = new Scene();
+
+    ent_one = make_ent();
 
     scene.components.active_entities[ent_one_id] = ent_one.base_entity;
     scene.components.base_stats[ent_one_id] = ent_one.base_stats;
     scene.components.health[ent_one_id] = ent_one.health;
     scene.components.position[ent_one_id] = 200;
 
-    const ent_two_id = 3;
-    const ent_two = make_ent();
+    ent_two = make_ent();
 
     scene.components.active_entities[ent_two_id] = ent_two.base_entity;
     scene.components.base_stats[ent_two_id] = ent_two.base_stats;
     scene.components.health[ent_two_id] = ent_two.health;
     scene.components.position[ent_two_id] = 201;
+  });
 
+  describe("should attack entities correctly", () => {
     it("attacks an entity that it should", () => {
       const attacked = attack_ent(scene, ent_one_id, ent_two_id);
 
@@ -54,24 +63,6 @@ describe("test attack system", () => {
   // NOTE: this will have to be changed when the "real" combat system in
   // implemented
   describe("should resolve damage correctly", () => {
-    const scene = new Scene();
-
-    const ent_one_id = 2;
-    const ent_one = make_ent();
-
-    scene.components.active_entities[ent_one_id] = ent_one.base_entity;
-    scene.components.base_stats[ent_one_id] = ent_one.base_stats;
-    scene.components.health[ent_one_id] = ent_one.health;
-    scene.components.position[ent_one_id] = 200;
-
-    const ent_two_id = 3;
-    const ent_two = make_ent();
-
-    scene.components.active_entities[ent_two_id] = ent_two.base_entity;
-    scene.components.base_stats[ent_two_id] = ent_two.base_stats;
-    scene.components.health[ent_two_id] = ent_two.health;
-    scene.components.position[ent_two_id] = 201;
-
     it("returns the correct amount of damage when it should", () => {
       const damage = damage_resolve(scene, ent_one_id, ent_two_id);
 

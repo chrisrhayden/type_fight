@@ -45,8 +45,11 @@ describe("test basic_map", () => {
     const width = 10;
     const height = 10;
 
-    const feature = new FeatureGenerator(seed);
+    let feature: FeatureGenerator;
 
+    before(() => {
+      feature = new FeatureGenerator(seed);
+    });
 
     it("makes a room correclty", () => {
       const basic_map = new BasicMap(feature, 1, width, height);
@@ -175,13 +178,22 @@ describe("test basic_map", () => {
     const width = 50;
     const height = 36;
 
-    const feature = new FeatureGenerator(seed);
-    const entitys = new Entities();
-    const scene = new Scene();
+    let feature: FeatureGenerator;
+    let entitys: Entities;
+    let scene: Scene;
 
-    const basic_map = new BasicMap(feature, 1, width, height);
+    let basic_map: BasicMap;
+    let made_map: GameMap;
 
-    const made_map = basic_map.make_map(entitys, scene);
+    before(() => {
+      feature = new FeatureGenerator(seed);
+      entitys = new Entities();
+      scene = new Scene();
+
+      basic_map = new BasicMap(feature, 1, width, height);
+
+      made_map = basic_map.make_map(entitys, scene);
+    });
 
     it("sets width & height data correclty", () => {
       assert.ok(made_map.width === test_map_data.width,
