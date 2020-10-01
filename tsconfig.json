@@ -2,7 +2,6 @@
     "compilerOptions": {
         "outDir": "./dist",
         "sourceMap": true,
-        "target": "ES2015",
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "esModuleInterop": true,
