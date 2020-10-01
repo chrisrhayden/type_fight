@@ -1,7 +1,9 @@
 import {Scene} from "../scenes";
 // import {BaseStats} from "../components";
 
-export function attack_resolve(scene: Scene, from_id: number | string, to_id: number | string): number {
+type Id = number | string;
+
+export function damage_resolve(scene: Scene, from_id: Id, to_id: Id): number {
   const from_ent = scene.components.base_stats[from_id];
   const to_ent = scene.components.base_stats[to_id];
 
@@ -12,17 +14,13 @@ export function attack_resolve(scene: Scene, from_id: number | string, to_id: nu
   return 0;
 }
 
-export function attack_ent(
-  scene: Scene,
-  from_id: number | string,
-  to_id: number | string
-): boolean {
+export function attack_ent(scene: Scene, from_id: Id, to_id: Id): boolean {
   if ((from_id in scene.components.health) === true
     && (from_id in scene.components.base_stats) === true
     && (to_id in scene.components.health) === true
     && (to_id in scene.components.base_stats) === true
   ) {
-    const hit_power = attack_resolve(scene, from_id, to_id);
+    const hit_power = damage_resolve(scene, from_id, to_id);
 
     const to_health = scene.components.health[to_id];
 
