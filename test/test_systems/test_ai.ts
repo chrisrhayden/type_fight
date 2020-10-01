@@ -6,16 +6,15 @@ import {EntityPreFab, GameTile, Ai, make_ent, Scene, GameMap, TerrainData} from 
 
 import * as ROT from "rot-js";
 import * as Move from "../../src/systems/movement";
-import * as AiSys from "../../src/systems/ai";
+import {run_ai} from "../../src/systems/ai";
 import * as Attack from "../../src/systems/attack";
 
 describe("test ai", () => {
   let scene: Scene;
-  let run_ai: (scene: Scene) => boolean;
 
-  let mock_astar_call: sinon.SinonStub;
   let mock_move_to: sinon.SinonStub;
   let mock_attack_ent: sinon.SinonStub;
+  let mock_compute: sinon.SinonStub;
 
   // let mock_astar: sinon.SinonStub;
 
@@ -26,7 +25,6 @@ describe("test ai", () => {
   let ent_one: EntityPreFab;
 
   // let ai_call: (x: number, y: number) => void;
-  let ai_call: AiSys.AstarCallback;
 
   before(() => {
     scene = new Scene();
@@ -49,17 +47,16 @@ describe("test ai", () => {
     scene.components.ai[ent_one_id] = Ai.Enemy;
     scene.components.active_entities[ent_one_id] = ent_one.base_entity;
 
-    ai_call = new AiSys.AstarCallback();
+    mock_compute = sinon.stub(ROT.Path.AStar.prototype, "compute");
 
-    ai_call.points = [[2, 10], [1, 10], [0, 10]];
+    mock_compute.callsFake(
+      (_x: number, _y: number, callback: (x: number, y: number) => void) => {
+        const ps = [[2, 10], [1, 10], [0, 10]];
 
-    mock_astar_call = sinon.stub(AiSys, "AstarCallback");
-
-    mock_astar_call.returns(ai_call);
-
-    run_ai = AiSys.run_ai;
-
-    sinon.stub(ROT.Path.AStar.prototype, "compute");
+        for (const p of ps) {
+          callback(p[0], p[1]);
+        }
+      });
 
     mock_move_to = sinon.stub(Move, "move_to");
 
@@ -116,7 +113,9 @@ describe("test ai", () => {
     });
 
     it("returns false if no data added from compute callback", () => {
-      ai_call.points = [];
+      mock_compute.callsFake(() => {
+        return;
+      });
 
       assert.ok(run_ai(scene) === false,
         "some how got data in compute callback");

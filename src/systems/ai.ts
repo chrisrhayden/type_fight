@@ -10,24 +10,6 @@ import {Scene} from "../scenes";
 import {move_to} from "./movement";
 import {attack_ent} from "./attack";
 
-
-// this is entirely so test can get context in to the astar callback so we can
-// give it path data
-export class AstarCallback {
-  points: [number, number][];
-
-  constructor() {
-    this.points = [];
-
-    // bind this to the method so we can use it as the fov.compute callback
-    this.callback = this.callback.bind(this);
-  }
-
-  callback(x: number, y: number): void {
-    this.points.push([x, y]);
-  }
-}
-
 export function run_ai(scene: Scene): boolean {
   const entities = Object.keys(scene.components.active_entities);
 
@@ -86,23 +68,24 @@ export function run_ai(scene: Scene): boolean {
 
       const astar = new ROT.Path.AStar(p_x, p_y, passable);
 
-      // NOTE: exports.* is to stub while testing
-      const astar_data = new exports.AstarCallback();
+      const points = [];
 
       // compute star for current entity
-      astar.compute(e_x, e_y, astar_data.callback);
+      astar.compute(e_x, e_y, (x: number, y: number) => {
+        points.push([x, y]);
+      });
 
       // TODO: i think this should always have the start path and the end pasth
       // node so i think a 0 is an error
-      if (astar_data.points.length === 0) {
+      if (points.length === 0) {
         console.error("astar did not return a path");
 
         return false;
       }
 
       // get the first new tile in path
-      const new_x = astar_data.points[1][0];
-      const new_y = astar_data.points[1][1];
+      const new_x = points[1][0];
+      const new_y = points[1][1];
 
       const next_pos = new_x + (scene.game_map.width * new_y);
 
