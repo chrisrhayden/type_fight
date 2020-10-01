@@ -25,7 +25,8 @@ describe("test ai", () => {
   const ent_one_id = 2;
   let ent_one: EntityPreFab;
 
-  let ai_call: (x: number, y: number) => void;
+  // let ai_call: (x: number, y: number) => void;
+  let ai_call: AiSys.AstarCallback;
 
   before(() => {
     scene = new Scene();
@@ -48,11 +49,11 @@ describe("test ai", () => {
     scene.components.ai[ent_one_id] = Ai.Enemy;
     scene.components.active_entities[ent_one_id] = ent_one.base_entity;
 
-    ai_call = AiSys.astar_callback();
+    ai_call = new AiSys.AstarCallback();
 
-    ai_call.prototype.points = [[2, 10], [1, 10], [0, 10]];
+    ai_call.points = [[2, 10], [1, 10], [0, 10]];
 
-    mock_astar_call = sinon.stub(AiSys, "astar_callback");
+    mock_astar_call = sinon.stub(AiSys, "AstarCallback");
 
     mock_astar_call.returns(ai_call);
 
@@ -115,7 +116,7 @@ describe("test ai", () => {
     });
 
     it("returns false if no data added from compute callback", () => {
-      ai_call.prototype.points = [];
+      ai_call.points = [];
 
       assert.ok(run_ai(scene) === false,
         "some how got data in compute callback");
