@@ -14,7 +14,13 @@ describe("test Entities", () => {
     it("makes first id at one", () => {
       const new_id = entries.new_id();
 
-      assert.ok(new_id === 1, "did not start entities id at one");
+      assert.ok(new_id === 1, "did not make first entity id at one");
+    });
+
+    it("makes second id at two", () => {
+      const new_id = entries.new_id();
+
+      assert.ok(new_id === 2, "did not make second entity id at two");
     });
   });
 });
