@@ -1,4 +1,4 @@
-import {default as Astar} from "rot-js/lib/path/astar";
+import * as ROT from "rot-js";
 
 // import {BaseEntity} from "../components";
 import {Ai} from "../components";
@@ -6,10 +6,18 @@ import {Scene} from "../scenes";
 import {move_to} from "./movement";
 import {attack_ent} from "./attack";
 
-export function run_ai(scene: Scene): boolean {
-  // const entities = Object.entries(scene.components.active_entities);
-  // for (const [id, _ent] of entities) {
 
+// this is entirely so test can get context in to the astar callback so we can
+// give it path data
+export function astar_callback(): (x: number, y: number) => void {
+  const points = [];
+
+  return (x: number, y: number) => {
+    points.push([x, y]);
+  };
+}
+
+export function run_ai(scene: Scene): boolean {
   const entities = Object.keys(scene.components.active_entities);
 
   for (const ai_id of entities) {
@@ -41,8 +49,6 @@ export function run_ai(scene: Scene): boolean {
         return true;
       };
 
-      const ai_path: [number, number][] = [];
-
       const player_pos = scene.components.position[scene.player];
 
       const p_x = player_pos % scene.game_map.width;
@@ -51,24 +57,27 @@ export function run_ai(scene: Scene): boolean {
       const e_x = ai_pos % scene.game_map.width;
       const e_y = Math.floor(ai_pos / scene.game_map.width);
 
-      const astar = new Astar(p_x, p_y, passable);
+      const astar = new ROT.Path.AStar(p_x, p_y, passable);
 
-      astar.compute(e_x, e_y, (x: number, y: number) => {
-        ai_path.push([x, y]);
-      });
+      const callback = exports.astar_callback();
+
+      astar.compute(e_x, e_y, callback);
 
       // TODO: i think this should always have the start path and the end pasth
       // node so i think a 0 is an error
-      if (ai_path.length === 0) {
-        console.error("astart did not reurn a path");
+      if (callback.prototype.points.length === 0) {
+        console.error("astar did not return a path");
 
         return false;
       }
 
-      const next_pos = ai_path[1][0] + (scene.game_map.width * ai_path[1][1]);
+      const new_x = callback.prototype.points[1][0];
+      const new_y = callback.prototype.points[1][1];
+
+      const next_pos = new_x + (scene.game_map.width * new_y);
 
       if (move_to(scene, ai_id, next_pos) === false) {
-        // TODO: why else cant a thing move
+        // TODO: where else cant a thing move
         if (next_pos !== player_pos) {
           return true;
         }
@@ -77,9 +86,7 @@ export function run_ai(scene: Scene): boolean {
           return true;
         }
 
-        if (attack_ent(scene, ai_id, scene.player) === false) {
-          return false;
-        }
+        return attack_ent(scene, ai_id, scene.player);
       }
     }
   }
