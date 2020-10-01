@@ -4,5 +4,5 @@
   "check-coverage": true,
   "reporter": ["text", "html"],
   "report-dir": "./test/cov",
-  "exclude": ["public/**/*.js", "utils/**", "test/cov", "*.js"]
+  "exclude": ["*.js", "public/**/*.js", "utils/", "test/cov"]
 }
