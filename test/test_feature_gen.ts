@@ -12,9 +12,9 @@ function assert_basic_entity(scene: Scene, id: number | string): boolean {
 
 describe("test feature_generator", () => {
   describe("should make entities correctly", () => {
-    const feature_generator = new FeatureGenerator(3333);
-
     it("makes a player correctly", () => {
+      const feature_generator = new FeatureGenerator(3333);
+
       const entities = new Entities();
       const scene = new Scene();
 
@@ -26,6 +26,8 @@ describe("test feature_generator", () => {
     });
 
     it("makes a monsters correctly", () => {
+      const feature_generator = new FeatureGenerator(3333);
+
       const entities = new Entities();
       const scene = new Scene();
 
