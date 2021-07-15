@@ -31,17 +31,6 @@ type PixiApp = {
   resolution?: number,
 }
 
-/* the main app options
- *
- * these are the global options that will largely be static for the rest of the
- * game
- */
-interface AppProps {
-  pixiContext: PIXI.Application,
-  gameOpts: GameOpts,
-  gameData: GameData,
-}
-
 /** the html context for the app
  *
  * this is more or less the main context that will allow the game state and the
@@ -50,27 +39,29 @@ interface AppProps {
 function App() {
   const pixiRef = useRef(null);
 
-  // make the pixi options
-  const pixiOpts: PixiApp = {
-    width: 800,
-    height: 600,
-  };
+  useEffect(() => {
+    // make the pixi options
+    const pixiOpts: PixiApp = {
+      width: 800,
+      height: 600,
+    };
 
-  const gameOpts: GameOpts = {
-    spriteSheetDataPath: "assets/pngs/coloredPacked.json",
-    spriteSize: [16, 16],
-    rngSeed: 3333,
-    // 4 will allow the player at least two tiles before seeing a monster
-    radius: 4,
-  };
+    const gameOpts: GameOpts = {
+      spriteSheetDataPath: "assets/pngs/coloredPacked.json",
+      spriteSize: [16, 16],
+      rngSeed: 3333,
+      // 4 will allow the player at least two tiles before seeing a monster
+      radius: 4,
+    };
 
-  const gameData = new GameData(gameOpts.rngSeed);
+    const gameData = new GameData(gameOpts.rngSeed);
 
-  // make the pixi context, it is just easier to make this global
-  const pixiContext = new PIXI.Application(pixiOpts);
+    // make the pixi context, it is just easier to make this global
+    const pixiContext = new PIXI.Application(pixiOpts);
 
-  // start game and it just run
-  startGame(pixiContext, gameOpts, gameData);
+    // start game and it just run
+    startGame(pixiContext, gameOpts, gameData);
+  }, []);
 
   return (
     <div id="App" ref={pixiRef}></div>
