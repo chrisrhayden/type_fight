@@ -59,12 +59,16 @@ function App() {
     // make the pixi context, it is just easier to make this global
     const pixiContext = new PIXI.Application(pixiOpts);
 
+    pixiRef.current.appendChild(pixiContext.view);
+
     // start game and it just run
     startGame(pixiContext, gameOpts, gameData);
   }, []);
 
   return (
-    <div id="App" ref={pixiRef}></div>
+    <div id="App">
+      <div ref={pixiRef}></div>
+    </div>
   );
 }
 
