@@ -8,4 +8,4 @@ fi
 
 yarn run webpack-cli || exit 1
 
-yarn run http-server
+yarn run http-server -c-1
