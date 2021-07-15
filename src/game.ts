@@ -29,7 +29,7 @@ function loadAssets(spriteSheet: string): Promise<PIXI.Spritesheet> {
   const loader = PIXI.Loader.shared;
 
   return new Promise<PIXI.Spritesheet>((resolve, reject) => {
-    loader.add(spriteSheet).load((Loader, resources) => {
+    loader.add(spriteSheet).load((_loader, resources) => {
       const sprites: PIXI.Spritesheet = resources[spriteSheet].spritesheet;
 
       if (sprites && sprites["textures"]) {
