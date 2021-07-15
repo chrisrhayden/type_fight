@@ -1,7 +1,7 @@
 {
     "meta": {
         "scale": 1,
-        "image": "colored_packed.png",
+        "image": "coloredPacked.png",
         "size": {
             "w": 768,
             "h": 352
