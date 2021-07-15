@@ -18,10 +18,10 @@ export class TerrainData {
   // if the tile is in view
   visible: boolean;
 
-  constructor(tile: GameTile, can_see: boolean) {
+  constructor(tile: GameTile, canSee: boolean) {
     this.id = 0;
     this.tile = tile;
-    this.blocks = can_see;
+    this.blocks = canSee;
     this.visible = false;
     this.visited = false;
   }

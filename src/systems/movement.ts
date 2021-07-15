@@ -4,18 +4,18 @@ import {Scene} from "../scenes";
  *
  * this should work for all entities
  */
-export function move_to(
+export function moveTo(
   scene: Scene,
   ent: number | string,
   pos: number,
 ): boolean {
   // if not in the map
-  if (pos < 0 || pos >= scene.game_map.data.length) {
+  if (pos < 0 || pos >= scene.gameMap.data.length) {
     return false;
   }
 
   // if map tile already blocks
-  if (scene.game_map.data[pos].blocks) {
+  if (scene.gameMap.data[pos].blocks) {
     return false;
   }
 
@@ -25,7 +25,7 @@ export function move_to(
   }
 
   // look and see of any other entity is at the location
-  const entities = Object.entries(scene.components.active_entities);
+  const entities = Object.entries(scene.components.activeEntities);
   for (const [key, ent] of entities) {
     if ((key in scene.components.position) === false) {
       continue;

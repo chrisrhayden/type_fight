@@ -1,56 +1,56 @@
 /** the main ai logic
  *
- * run_ai will iterate over all active_entities and run the logic based on what
+ * runAi will iterate over all activeEntities and run the logic based on what
  * the entity is
  */
 import * as ROT from "rot-js";
 
 import {Ai} from "../components";
 import {Scene} from "../scenes";
-import {move_to} from "./movement";
-import {attack_ent} from "./attack";
+import {moveTo} from "./movement";
+import {attackEnt} from "./attack";
 
-export function run_ai(scene: Scene): boolean {
-  const entities = Object.keys(scene.components.active_entities);
+export function runAi(scene: Scene): boolean {
+  const entities = Object.keys(scene.components.activeEntities);
 
   // run through all the active entities
-  for (const ai_id of entities) {
+  for (const aiId of entities) {
     // if the entity does not have an ai we do nothing
-    if ((ai_id in scene.components.ai) === false) {
+    if ((aiId in scene.components.ai) === false) {
       continue;
     }
 
     // the only systems in place need a position
-    if ((ai_id in scene.components.position) === false) {
+    if ((aiId in scene.components.position) === false) {
       continue;
     }
 
-    const ai_pos = scene.components.position[ai_id];
+    const aiPos = scene.components.position[aiId];
 
-    if (scene.game_map.data[ai_pos].visible === true) {
+    if (scene.gameMap.data[aiPos].visible === true) {
       // a callback to check if tile is passable
       const passable = (x: number, y: number) => {
-        const indx = x + (scene.game_map.width * y);
+        const indx = x + (scene.gameMap.width * y);
 
-        if (indx < 0 || indx >= scene.game_map.data.length) {
+        if (indx < 0 || indx >= scene.gameMap.data.length) {
           return false;
         }
 
-        if (scene.game_map.data[indx].blocks) {
+        if (scene.gameMap.data[indx].blocks) {
           return false;
         }
 
-        const inner_ents = Object.entries(scene.components.active_entities)
-          .filter((value) => value[0] !== ai_id);
+        const innerEnts = Object.entries(scene.components.activeEntities)
+          .filter((value) => value[0] !== aiId);
 
-        for (const [key, ent] of inner_ents) {
+        for (const [key, ent] of innerEnts) {
           if ((key in scene.components.position) === false) {
             continue;
           }
 
-          const ent_pos = scene.components.position[key];
+          const entPos = scene.components.position[key];
 
-          if (indx === ent_pos && ent.blocks === true) {
+          if (indx === entPos && ent.blocks === true) {
             return false;
           }
         }
@@ -58,20 +58,20 @@ export function run_ai(scene: Scene): boolean {
         return true;
       };
 
-      const player_pos = scene.components.position[scene.player];
+      const playerPos = scene.components.position[scene.player];
 
-      const p_x = player_pos % scene.game_map.width;
-      const p_y = Math.floor(player_pos / scene.game_map.width);
+      const pX = playerPos % scene.gameMap.width;
+      const pY = Math.floor(playerPos / scene.gameMap.width);
 
-      const e_x = ai_pos % scene.game_map.width;
-      const e_y = Math.floor(ai_pos / scene.game_map.width);
+      const eX = aiPos % scene.gameMap.width;
+      const eY = Math.floor(aiPos / scene.gameMap.width);
 
-      const astar = new ROT.Path.AStar(p_x, p_y, passable);
+      const astar = new ROT.Path.AStar(pX, pY, passable);
 
       const points = [];
 
       // compute star for current entity
-      astar.compute(e_x, e_y, (x: number, y: number) => {
+      astar.compute(eX, eY, (x: number, y: number) => {
         points.push([x, y]);
       });
 
@@ -84,23 +84,23 @@ export function run_ai(scene: Scene): boolean {
       }
 
       // get the first new tile in path
-      const new_x = points[1][0];
-      const new_y = points[1][1];
+      const newX = points[1][0];
+      const newY = points[1][1];
 
-      const next_pos = new_x + (scene.game_map.width * new_y);
+      const nextPos = newX + (scene.gameMap.width * newY);
 
-      if (move_to(scene, ai_id, next_pos) === false) {
-        // if the next_pos does not equal the player_pos then there is nothing
+      if (moveTo(scene, aiId, nextPos) === false) {
+        // if the nextPos does not equal the playerPos then there is nothing
         // to do foe the ai
-        if (next_pos !== player_pos) {
+        if (nextPos !== playerPos) {
           return true;
         }
 
-        if (scene.components.ai[ai_id] !== Ai.Enemy) {
+        if (scene.components.ai[aiId] !== Ai.Enemy) {
           return true;
         }
 
-        return attack_ent(scene, ai_id, scene.player);
+        return attackEnt(scene, aiId, scene.player);
       }
     }
   }

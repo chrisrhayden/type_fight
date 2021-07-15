@@ -14,7 +14,7 @@ export enum Ai {
 }
 
 export class Health {
-  max_value: number;
+  maxValue: number;
   value: number;
 }
 
@@ -32,7 +32,7 @@ export class BaseStats {
  * a tree might look like
  * {
  *  blocks: true,
- *  blocks_light: true,
+ *  blocksLight: true,
  *  renders: true,
  *  tile: Tree,
  * }
@@ -40,7 +40,7 @@ export class BaseStats {
  * or a ghost
  * {
  *  blocks: false,
- *  blocks_light: false,
+ *  blocksLight: false,
  *  renders: true,
  *  tile: Ghost,
  * }
@@ -48,14 +48,14 @@ export class BaseStats {
  * or a glass wall
  *{
  *  blocks: true,
- *  blocks_light: false,
+ *  blocksLight: false,
  *  renders: true,
  *  tile: GlassWall,
  * }
  */
 export class BaseEntity {
   blocks: boolean;
-  blocks_light: boolean;
+  blocksLight: boolean;
   renders: boolean;
   tile: GameTile;
 }
@@ -66,20 +66,20 @@ export class Components {
   player: Record<number, GameTile>;
 
   ai: Record<number, Ai>;
-  active_entities: Record<number, BaseEntity>;
+  activeEntities: Record<number, BaseEntity>;
 
   health: Record<number, Health>;
-  base_stats: Record<number, BaseStats>;
+  baseStats: Record<number, BaseStats>;
   position: Record<number, number>;
 
   constructor() {
     this.player = {};
 
     this.ai = {};
-    this.active_entities = {};
+    this.activeEntities = {};
 
     this.health = {};
-    this.base_stats = {};
+    this.baseStats = {};
     this.position = {};
   }
 }

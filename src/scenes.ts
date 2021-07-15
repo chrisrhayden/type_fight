@@ -4,10 +4,10 @@
  * to be expressed with a `Scene`
  */
 import {Components} from "./components";
-import {GameMap} from "./game_map/game_map";
+import {GameMap} from "./gameMap/gameMap";
 
 export class Scene {
-  game_map: GameMap;
+  gameMap: GameMap;
 
   player: number;
 
@@ -23,25 +23,25 @@ export class Scene {
 export class Scenes {
   scenes: Record<number, Scene>;
 
-  new_id: number;
+  newId: number;
 
-  current_id: number;
+  currentId: number;
 
   constructor() {
     this.scenes = {};
-    this.new_id = 0;
-    this.current_id = 0;
+    this.newId = 0;
+    this.currentId = 0;
   }
 
-  new_scene(): number {
-    this.new_id += 1;
+  newScene(): number {
+    this.newId += 1;
 
-    this.scenes[this.new_id] = new Scene();
+    this.scenes[this.newId] = new Scene();
 
-    return this.new_id;
+    return this.newId;
   }
 
-  get_scene(scene_id: number): Scene {
-    return this.scenes[scene_id];
+  getScene(sceneId: number): Scene {
+    return this.scenes[sceneId];
   }
 }

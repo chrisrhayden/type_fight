@@ -3,34 +3,34 @@ import * as PIXI from "pixi.js";
 
 import * as ROT from "rot-js";
 
-import {make_default_keys} from "./keyboard";
-import {run_ai} from "./systems/ai";
-import {handle_input} from "./systems/input";
+import {makeDefaultKeys} from "./keyboard";
+import {runAi} from "./systems/ai";
+import {handleInput} from "./systems/input";
 import {Entities} from "./entities";
 import {Scenes, Scene} from "./scenes";
-import {GameMap} from "./game_map/game_map";
-import {BasicMap} from "./level_gen/basic_map";
-import {FeatureGenerator} from "./feature_generator";
+import {GameMap} from "./gameMap/gameMap";
+import {BasicMap} from "./levelGen/basicMap";
+import {FeatureGenerator} from "./featureGenerator";
 
 /** main game options */
 export interface GameOpts {
-  // the sprite_sheet url
-  sprite_sheet_data_path: string;
-  // the sprite_sheet w,h
-  sprite_size: [number, number];
+  // the spriteSheet url
+  spriteSheetDataPath: string;
+  // the spriteSheet w,h
+  spriteSize: [number, number];
   // the current rng seed
-  rng_seed: number,
+  rngSeed: number,
   // this is a bit wrong as it adds 1, (i.e. d = (r * 2) + 1)
   radius: number,
 }
 
 // TODO: this really needs to be improved
-function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
+function loadAssets(spriteSheet: string): Promise<PIXI.Spritesheet> {
   const loader = PIXI.Loader.shared;
 
   return new Promise<PIXI.Spritesheet>((resolve, reject) => {
-    loader.add(sprite_sheet).load((_loader, resources) => {
-      const sprites: PIXI.Spritesheet = resources[sprite_sheet].spritesheet;
+    loader.add(spriteSheet).load((Loader, resources) => {
+      const sprites: PIXI.Spritesheet = resources[spriteSheet].spritesheet;
 
       if (sprites && sprites["textures"]) {
         resolve(sprites);
@@ -45,33 +45,33 @@ function load_assets(sprite_sheet: string): Promise<PIXI.Spritesheet> {
  *
  * use rot-js's precise shadowcasting algorithm
  */
-function compute_fov(radius: number, scene: Scene, ent: number): boolean {
+function computeFov(radius: number, scene: Scene, ent: number): boolean {
   if ((ent in scene.components.position) === false) {
     console.error("entity does not have a position");
 
     return false;
   }
 
-  // if light_passes the cell
-  const light_passes = (x: number, y: number): boolean => {
-    const indx = x + (scene.game_map.width * y);
+  // if lightPasses the cell
+  const lightPasses = (x: number, y: number): boolean => {
+    const indx = x + (scene.gameMap.width * y);
 
-    if (indx < 0 || indx >= scene.game_map.data.length) {
+    if (indx < 0 || indx >= scene.gameMap.data.length) {
       return false;
     }
 
-    if (scene.game_map.data[indx].blocks === true) {
+    if (scene.gameMap.data[indx].blocks === true) {
       return false;
     }
 
-    const entities = Object.entries(scene.components.active_entities);
+    const entities = Object.entries(scene.components.activeEntities);
     for (const [id, ent] of entities) {
       if ((id in scene.components.position) === false) {
         continue;
       }
 
       if (scene.components.position[id] === indx) {
-        return ent.blocks_light === false;
+        return ent.blocksLight === false;
       }
     }
 
@@ -79,30 +79,30 @@ function compute_fov(radius: number, scene: Scene, ent: number): boolean {
   };
 
   // this what to do when once a tile is in the players view and light passes
-  const cell_logic = (x: number, y: number, r: number, visibility: number) => {
-    const indx = x + (scene.game_map.width * y);
+  const cellLogic = (x: number, y: number, r: number, visibility: number) => {
+    const indx = x + (scene.gameMap.width * y);
 
-    if (indx < 0 || indx >= scene.game_map.data.length) {
+    if (indx < 0 || indx >= scene.gameMap.data.length) {
       return false;
     }
 
     // visibility could be used to adjust tint at some point
     if (visibility > 0 && r <= radius) {
       // index will always be in map data if passes the first if, hopefully
-      scene.game_map.data[indx].visible = true;
+      scene.gameMap.data[indx].visible = true;
 
-      scene.game_map.data[indx].visited = true;
+      scene.gameMap.data[indx].visited = true;
     }
   };
 
-  const fov = new ROT.FOV.PreciseShadowcasting(light_passes);
+  const fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
 
   const indx = scene.components.position[ent];
 
-  const p_x = indx % scene.game_map.width;
-  const p_y = Math.floor(indx / scene.game_map.width);
+  const pX = indx % scene.gameMap.width;
+  const pY = Math.floor(indx / scene.gameMap.width);
 
-  fov.compute(p_x, p_y, radius, cell_logic);
+  fov.compute(pX, pY, radius, cellLogic);
 
   return true;
 }
@@ -117,14 +117,14 @@ export class GameData {
   // a class to make unique entities
   entities: Entities;
   // a class to abstract the making of game features like monsters and items
-  feature_generator: FeatureGenerator;
+  featureGenerator: FeatureGenerator;
 
   constructor(seed: number) {
     this.entities = new Entities();
 
     this.scenes = new Scenes();
 
-    this.feature_generator = new FeatureGenerator(seed);
+    this.featureGenerator = new FeatureGenerator(seed);
   }
 }
 
@@ -142,19 +142,19 @@ enum LoopState {
  */
 export class Game {
   options: GameOpts;
-  game_data: GameData;
+  gameData: GameData;
 
-  // the current sprite_sheet that everything will be drawn from
-  sprite_sheet: PIXI.Spritesheet;
+  // the current spriteSheet that everything will be drawn from
+  spriteSheet: PIXI.Spritesheet;
 
   // display containers, sprites are add to a container and pixi will draw them
   // from there
   containers: Record<string, PIXI.Container>;
 
   // the sprites for the map
-  sprite_map: PIXI.Sprite[];
+  spriteMap: PIXI.Sprite[];
   // a cache for entity sprites
-  entity_sprites: Record<number, PIXI.Sprite>;
+  entitySprites: Record<number, PIXI.Sprite>;
 
   // the input events from the user
   events: KeyboardEvent[];
@@ -163,16 +163,16 @@ export class Game {
   keys: Record<string, () => void>;
 
   // the current scene being used
-  current_scene: number;
+  currentScene: number;
 
   // the game loop state
-  game_state: LoopState;
+  gameState: LoopState;
 
-  // just set the options and the init_game function will actually load the data
-  constructor(game_opts: GameOpts, game_data: GameData) {
-    this.options = game_opts;
+  // just set the options and the initGame function will actually load the data
+  constructor(gameOpts: GameOpts, gameData: GameData) {
+    this.options = gameOpts;
 
-    this.game_data = game_data;
+    this.gameData = gameData;
   }
 
   /** the real constructor
@@ -184,18 +184,18 @@ export class Game {
    * this needs to also run all setup functions, it will change to loading a
    * main menu at some point
    */
-  async init_game(): Promise<Record<string, PIXI.Container> | null> {
-    this.sprite_sheet = await load_assets(this.options.sprite_sheet_data_path);
+  async initGame(): Promise<Record<string, PIXI.Container> | null> {
+    this.spriteSheet = await loadAssets(this.options.spriteSheetDataPath);
 
-    this.current_scene = this.game_data.scenes.new_scene();
+    this.currentScene = this.gameData.scenes.newScene();
 
-    const cur_scene = this.game_data.scenes.get_scene(this.current_scene);
+    const curScene = this.gameData.scenes.getScene(this.currentScene);
 
-    const basic_map = new BasicMap(this.game_data.feature_generator, 1, 50, 36);
+    const basicMap = new BasicMap(this.gameData.featureGenerator, 1, 50, 36);
 
-    cur_scene.game_map = basic_map.make_map(this.game_data.entities, cur_scene);
+    curScene.gameMap = basicMap.makeMap(this.gameData.entities, curScene);
 
-    if (cur_scene.game_map.data.length === 0) {
+    if (curScene.gameMap.data.length === 0) {
       return null;
     }
 
@@ -204,37 +204,37 @@ export class Game {
       entities: new PIXI.Container(),
     };
 
-    this.make_sprite_map(cur_scene.game_map);
+    this.makeSpriteMap(curScene.gameMap);
 
-    this.entity_sprites = {};
+    this.entitySprites = {};
 
-    this.render_entities(cur_scene);
+    this.renderEntities(curScene);
 
-    this.game_state = LoopState.PlayerTurn;
+    this.gameState = LoopState.PlayerTurn;
 
     this.events = [];
 
     this.keys = {};
 
-    if (!make_default_keys(this.keys, this.events)) {
+    if (!makeDefaultKeys(this.keys, this.events)) {
       console.error("could not make default keys");
 
       return null;
     }
 
-    if (!compute_fov(this.options.radius, cur_scene, cur_scene.player)) {
+    if (!computeFov(this.options.radius, curScene, curScene.player)) {
       console.error("could not compute fov");
 
       return null;
     }
 
-    if (!this.render_map(cur_scene)) {
+    if (!this.renderMap(curScene)) {
       console.error("could not render the map");
 
       return null;
     }
 
-    if (!this.render_entities(cur_scene)) {
+    if (!this.renderEntities(curScene)) {
       console.error("could not render the entities");
 
       return null;
@@ -244,83 +244,83 @@ export class Game {
     return this.containers;
   }
 
-  /** make the sprite_map from the game_map
+  /** make the spriteMap from the gameMap
    *
    * this will make the sprite map array
    */
-  make_sprite_map(game_map: GameMap): boolean {
-    if (game_map.data === undefined || game_map.data.length === 0) {
+  makeSpriteMap(gameMap: GameMap): boolean {
+    if (gameMap.data === undefined || gameMap.data.length === 0) {
       return false;
     }
 
-    this.sprite_map = Array(game_map.data.length);
+    this.spriteMap = Array(gameMap.data.length);
 
     // so we can offset the map
     const start = 0;
 
     let x = start;
-    // we can add a start_y if needed
+    // we can add a startY if needed
     let y = start;
 
     // so we can break at the right row
-    let row_count = 0;
+    let rowCount = 0;
 
     // we count the map tiles and do the math to place it on the screen
-    for (let i = 0; i < game_map.data.length; ++i) {
+    for (let i = 0; i < gameMap.data.length; ++i) {
       // because we start at 0 if we are on the map width we have gone over the
       // end of the row and need to start x at the `start` position and
       // increment the y to start the net row
-      if (row_count === game_map.width) {
+      if (rowCount === gameMap.width) {
         // this should be zero as we are counting the map row
-        row_count = 0;
+        rowCount = 0;
 
         x = start;
 
-        y += this.options.sprite_size[1];
+        y += this.options.spriteSize[1];
       }
 
-      // set the sprite_map to the given Sprite
-      this.sprite_map[i] = new PIXI.Sprite(
-        this.sprite_sheet["textures"][game_map.data[i].tile.toString()]
+      // set the spriteMap to the given Sprite
+      this.spriteMap[i] = new PIXI.Sprite(
+        this.spriteSheet["textures"][gameMap.data[i].tile.toString()]
       );
 
       // set the sprite to right place in the screen
-      this.sprite_map[i].x = x;
-      this.sprite_map[i].y = y;
+      this.spriteMap[i].x = x;
+      this.spriteMap[i].y = y;
 
       // set the sprite's visible to false allowing fov to work
-      this.sprite_map[i].visible = false;
+      this.spriteMap[i].visible = false;
 
-      // add the sprite to the map_container so it will get added to the app
-      this.containers["map"].addChild(this.sprite_map[i]);
+      // add the sprite to the mapContainer so it will get added to the app
+      this.containers["map"].addChild(this.spriteMap[i]);
 
-      x += this.options.sprite_size[0];
-      row_count += 1;
+      x += this.options.spriteSize[0];
+      rowCount += 1;
     }
 
     return true;
   }
 
   /** update the map tiles */
-  render_map(scene: Scene): boolean {
-    for (let i = 0; i < scene.game_map.data.length; ++i) {
+  renderMap(scene: Scene): boolean {
+    for (let i = 0; i < scene.gameMap.data.length; ++i) {
       // if currently visible
-      if (scene.game_map.data[i].visible === true) {
-        this.sprite_map[i].visible = true;
+      if (scene.gameMap.data[i].visible === true) {
+        this.spriteMap[i].visible = true;
 
         // this resets tint's
-        this.sprite_map[i].tint = 0xFFFFFF;
+        this.spriteMap[i].tint = 0xFFFFFF;
 
         // if the tile has been visited before
-      } else if (scene.game_map.data[i].visited === true) {
-        this.sprite_map[i].visible = true;
+      } else if (scene.gameMap.data[i].visited === true) {
+        this.spriteMap[i].visible = true;
 
         // tint grey
-        this.sprite_map[i].tint = 0x808080;
+        this.spriteMap[i].tint = 0x808080;
 
       } else {
         // dont display at all
-        this.sprite_map[i].visible = false;
+        this.spriteMap[i].visible = false;
       }
     }
 
@@ -328,9 +328,9 @@ export class Game {
   }
 
   /** update all active entities */
-  render_entities(scene: Scene): boolean {
+  renderEntities(scene: Scene): boolean {
     // get an iterator over the keys and values for the active entities
-    const entities = Object.entries(scene.components.active_entities);
+    const entities = Object.entries(scene.components.activeEntities);
 
     for (const [id, entity] of entities) {
       // dont bother if it doesn't have a position
@@ -339,50 +339,50 @@ export class Game {
       }
 
       // add the entity if it does not exists
-      if ((id in this.entity_sprites) === false) {
-        this.entity_sprites[id] = new PIXI.Sprite(
-          this.sprite_sheet["textures"][entity.tile.toString()]
+      if ((id in this.entitySprites) === false) {
+        this.entitySprites[id] = new PIXI.Sprite(
+          this.spriteSheet["textures"][entity.tile.toString()]
         );
 
-        this.containers["entities"].addChild(this.entity_sprites[id]);
+        this.containers["entities"].addChild(this.entitySprites[id]);
       }
 
       const indx = scene.components.position[id];
 
       // if entity is in the player's view
-      if (scene.game_map.data[indx].visible === true) {
-        const tile_x = indx % scene.game_map.width;
-        const tile_y = Math.floor(indx / scene.game_map.width);
+      if (scene.gameMap.data[indx].visible === true) {
+        const tileX = indx % scene.gameMap.width;
+        const tileY = Math.floor(indx / scene.gameMap.width);
 
         // multiply by the sprite size to place on screen correctly
-        this.entity_sprites[id].x = tile_x * this.options.sprite_size[0];
-        this.entity_sprites[id].y = tile_y * this.options.sprite_size[1];
+        this.entitySprites[id].x = tileX * this.options.spriteSize[0];
+        this.entitySprites[id].y = tileY * this.options.spriteSize[1];
 
-        this.entity_sprites[id].visible = true;
+        this.entitySprites[id].visible = true;
 
       } else {
-        this.entity_sprites[id].visible = false;
+        this.entitySprites[id].visible = false;
       }
     }
 
     // now for the player
     const pos = scene.components.position[scene.player];
 
-    const x = pos % scene.game_map.width;
-    const y = Math.floor(pos / scene.game_map.width);
+    const x = pos % scene.gameMap.width;
+    const y = Math.floor(pos / scene.gameMap.width);
 
-    if (scene.player in this.entity_sprites) {
-      this.entity_sprites[scene.player].x = x * this.options.sprite_size[0];
-      this.entity_sprites[scene.player].y = y * this.options.sprite_size[0];
+    if (scene.player in this.entitySprites) {
+      this.entitySprites[scene.player].x = x * this.options.spriteSize[0];
+      this.entitySprites[scene.player].y = y * this.options.spriteSize[0];
     } else {
-      this.entity_sprites[scene.player] = new PIXI.Sprite(
-        this.sprite_sheet["textures"][scene.components.player[scene.player]]
+      this.entitySprites[scene.player] = new PIXI.Sprite(
+        this.spriteSheet["textures"][scene.components.player[scene.player]]
       );
 
-      this.entity_sprites[scene.player].x = x * this.options.sprite_size[0];
-      this.entity_sprites[scene.player].y = y * this.options.sprite_size[0];
+      this.entitySprites[scene.player].x = x * this.options.spriteSize[0];
+      this.entitySprites[scene.player].y = y * this.options.spriteSize[0];
 
-      this.containers["entities"].addChild(this.entity_sprites[scene.player]);
+      this.containers["entities"].addChild(this.entitySprites[scene.player]);
     }
 
     return true;
@@ -392,12 +392,12 @@ export class Game {
    *
    * this functions will be called 60 * sec or as much as possible
    */
-  game_tick(): boolean {
+  gameTick(): boolean {
     // grab the current scene
-    const cur_scene = this.game_data.scenes.get_scene(this.current_scene);
+    const curScene = this.gameData.scenes.getScene(this.currentScene);
 
     // if its the players turn
-    if (this.game_state === LoopState.PlayerTurn) {
+    if (this.gameState === LoopState.PlayerTurn) {
       let taken = false;
 
       let evt = this.events.shift();
@@ -406,52 +406,52 @@ export class Game {
       // for one thing to happen as its possible i think to get more the one
       // key press a frame
       while (evt !== undefined) {
-        taken = handle_input(cur_scene, evt);
+        taken = handleInput(curScene, evt);
 
         evt = this.events.shift();
       }
 
       // if the player has taken a turn then let ai take a turn
       if (taken) {
-        this.game_state = LoopState.AiTurn;
+        this.gameState = LoopState.AiTurn;
       }
     }
 
     // if its the ai's turn
-    if (this.game_state === LoopState.AiTurn) {
+    if (this.gameState === LoopState.AiTurn) {
       // reset visibility
-      for (let i = 0; i < cur_scene.game_map.data.length; ++i) {
-        cur_scene.game_map.data[i].visible = false;
+      for (let i = 0; i < curScene.gameMap.data.length; ++i) {
+        curScene.gameMap.data[i].visible = false;
       }
 
-      // compute_fov needs to be run first
-      if (!compute_fov(this.options.radius, cur_scene, cur_scene.player)) {
+      // computeFov needs to be run first
+      if (!computeFov(this.options.radius, curScene, curScene.player)) {
         console.error("could not compute fov");
 
         return false;
       }
 
       // ai should be run before rendering
-      if (!run_ai(cur_scene)) {
+      if (!runAi(curScene)) {
         console.error("could not run ai");
 
         return false;
       }
 
-      if (!this.render_map(cur_scene)) {
+      if (!this.renderMap(curScene)) {
         console.error("could not render the map");
 
         return false;
       }
 
-      if (!this.render_entities(cur_scene)) {
+      if (!this.renderEntities(curScene)) {
         console.error("could not render entities");
 
         return false;
       }
 
       // make sure to let the player take a turn next frame
-      this.game_state = LoopState.PlayerTurn;
+      this.gameState = LoopState.PlayerTurn;
     }
 
     return true;
@@ -464,16 +464,16 @@ export class Game {
  * loading assets to run asynchronously as well not having to use
  * callbacks like `.then()`
  */
-export async function start_game(
+export async function startGame(
   app: PIXI.Application,
-  game_opts: GameOpts,
-  game_data: GameData
+  gameOpts: GameOpts,
+  gameData: GameData
 ): Promise<void> {
   // get a new game
-  const game = new Game(game_opts, game_data);
+  const game = new Game(gameOpts, gameData);
 
   // wait for the game to load the assets
-  const containers = await game.init_game();
+  const containers = await game.initGame();
 
   // test if the game was created correctly
   if (!containers) {
@@ -486,7 +486,7 @@ export async function start_game(
 
   // add the game logic to the app loop
   app.ticker.add(() => {
-    if (!game.game_tick()) {
+    if (!game.gameTick()) {
       // hmm, idk how i feel about this
       app.ticker.stop();
     }

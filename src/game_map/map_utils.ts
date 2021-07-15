@@ -1,8 +1,8 @@
 /** utility's for map's
  *
- * this is largely taken from the python roguelike_tutorial_revised
- * https://github.com/TStand90/roguelike_tutorial_revised/
- * blob/part3/map_objects/rectangle.py
+ * this is largely taken from the python roguelikeTutorialRevised
+ * https://github.com/TStand90/roguelikeTutorialRevised/
+ * blob/part3/mapObjects/rectangle.py
  */
 
 // a rectangle in a map with with convenience functions
@@ -20,10 +20,10 @@ export class Rect {
   }
 
   center(): [number, number] {
-    const center_x = Math.floor((this.x1 + this.x2) / 2);
-    const center_y = Math.floor((this.y1 + this.y2) / 2);
+    const centerX = Math.floor((this.x1 + this.x2) / 2);
+    const centerY = Math.floor((this.y1 + this.y2) / 2);
 
-    return [center_x, center_y];
+    return [centerX, centerY];
   }
 
   intersects(other: Rect): boolean {

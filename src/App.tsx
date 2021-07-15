@@ -8,14 +8,14 @@
  * based off whether it is a dev build or not
  */
 
-import React from "react";
+import React, {useRef, useEffect} from "react";
 import ReactDOM from "react-dom";
 
 import * as PIXI from "pixi.js";
 
 import "./App.css";
 
-import {start_game, GameData, GameOpts} from "./index";
+import {startGame, GameData, GameOpts} from "./game";
 
 /** this is mostly to not have to look up the data again */
 type PixiApp = {
@@ -37,9 +37,9 @@ type PixiApp = {
  * game
  */
 interface AppProps {
-  pixi_context: PIXI.Application,
-    game_opts: GameOpts,
-    game_data: GameData,
+  pixiContext: PIXI.Application,
+  gameOpts: GameOpts,
+  gameData: GameData,
 }
 
 /** the html context for the app
@@ -47,12 +47,33 @@ interface AppProps {
  * this is more or less the main context that will allow the game state and the
  * react state to interact at some point
  */
-function App(props: AppProps) {
+function App() {
+  const pixiRef = useRef(null);
+
+  // make the pixi options
+  const pixiOpts: PixiApp = {
+    width: 800,
+    height: 600,
+  };
+
+  const gameOpts: GameOpts = {
+    spriteSheetDataPath: "assets/pngs/coloredPacked.json",
+    spriteSize: [16, 16],
+    rngSeed: 3333,
+    // 4 will allow the player at least two tiles before seeing a monster
+    radius: 4,
+  };
+
+  const gameData = new GameData(gameOpts.rngSeed);
+
+  // make the pixi context, it is just easier to make this global
+  const pixiContext = new PIXI.Application(pixiOpts);
+
   // start game and it just run
-  start_game(props.pixi_context, props.game_opts, props.game_data);
+  startGame(pixiContext, gameOpts, gameData);
 
   return (
-    <div id="App"></div>
+    <div id="App" ref={pixiRef}></div>
   );
 }
 
@@ -61,38 +82,14 @@ function App(props: AppProps) {
  * this is basically a wrapper around the pixi context, react and the game
  */
 function main() {
-  // make the pixi options
-  const pixi_opts: PixiApp = {
-    width: 800,
-    height: 600,
-  };
 
-  const game_opts: GameOpts = {
-    sprite_sheet_data_path: "assets/pngs/colored_packed.json",
-    sprite_size: [16, 16],
-    rng_seed: 3333,
-    // 4 will allow the player at least two tiles before seeing a monster
-    radius: 4,
-  };
-
-  const game_data = new GameData(game_opts.rng_seed);
-
-  // make the pixi context, it is just easier to make this global
-  const pixi_context = new PIXI.Application(pixi_opts);
-
-  // make the props to send to the game context
-  const app_props: AppProps = {
-    pixi_context,
-    game_opts,
-    game_data,
-  };
 
   // TODO: find out if this is synchronous, i think so
   // add then render <App /> to the given html element
-  ReactDOM.render(<App {...app_props} />, document.getElementById("root-app"));
-
-  // add pixi to the given html element
-  document.getElementById("App").appendChild(app_props.pixi_context.view);
+  ReactDOM.render(
+    <App />,
+    document.getElementById("root-app")
+  );
 }
 
 // run the whole project

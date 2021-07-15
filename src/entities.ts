@@ -13,7 +13,7 @@ export class Entities {
     this.id = 0;
   }
 
-  new_id(): number {
+  newId(): number {
     this.id += 1;
 
     return this.id;

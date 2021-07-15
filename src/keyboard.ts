@@ -1,44 +1,44 @@
 /** a keyboard handler */
 
-export function make_default_keys(
+export function makeDefaultKeys(
   keys: Record<string, () => void>,
   events: KeyboardEvent[]
 ): boolean {
-  keys["w"] = add_key(events, "w");
-  keys["d"] = add_key(events, "d");
-  keys["a"] = add_key(events, "a");
-  keys["s"] = add_key(events, "s");
+  keys["w"] = addKey(events, "w");
+  keys["d"] = addKey(events, "d");
+  keys["a"] = addKey(events, "a");
+  keys["s"] = addKey(events, "s");
 
   // up-right
-  keys["e"] = add_key(events, "e");
+  keys["e"] = addKey(events, "e");
   // up-left
-  keys["q"] = add_key(events, "q");
+  keys["q"] = addKey(events, "q");
   // down-right
-  keys["x"] = add_key(events, "x");
+  keys["x"] = addKey(events, "x");
   // down-left
-  keys["z"] = add_key(events, "z");
+  keys["z"] = addKey(events, "z");
 
-  keys["ArrowUp"] = add_key(events, "ArrowUp");
-  keys["ArrowDown"] = add_key(events, "ArrowDown");
-  keys["ArrowLeft"] = add_key(events, "ArrowLeft");
-  keys["ArrowRight"] = add_key(events, "ArrowRight");
+  keys["ArrowUp"] = addKey(events, "ArrowUp");
+  keys["ArrowDown"] = addKey(events, "ArrowDown");
+  keys["ArrowLeft"] = addKey(events, "ArrowLeft");
+  keys["ArrowRight"] = addKey(events, "ArrowRight");
 
   return true;
 }
 
 /** make a key handler */
-export function add_key(event_queue: Event[], key_str: string): () => void {
-  const up_handle = (event: KeyboardEvent) => {
-    if (event.key === key_str) {
-      event_queue.push(event);
+export function addKey(eventQueue: Event[], keyStr: string): () => void {
+  const upHandle = (event: KeyboardEvent) => {
+    if (event.key === keyStr) {
+      eventQueue.push(event);
 
       event.preventDefault();
     }
   };
 
-  const down_handle = (event: KeyboardEvent) => {
-    if (event.key === key_str) {
-      event_queue.push(event);
+  const downHandle = (event: KeyboardEvent) => {
+    if (event.key === keyStr) {
+      eventQueue.push(event);
 
       event.preventDefault();
     }
@@ -46,12 +46,12 @@ export function add_key(event_queue: Event[], key_str: string): () => void {
 
   // Detach event listeners
   const unsubscribe = function () {
-    window.removeEventListener("keyup", up_handle);
-    window.removeEventListener("keydown", down_handle);
+    window.removeEventListener("keyup", upHandle);
+    window.removeEventListener("keydown", downHandle);
   };
 
-  window.addEventListener("keyup", up_handle, false);
-  window.addEventListener("keydown", down_handle, false);
+  window.addEventListener("keyup", upHandle, false);
+  window.addEventListener("keydown", downHandle, false);
 
   return unsubscribe;
 }

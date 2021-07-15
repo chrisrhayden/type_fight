@@ -8,14 +8,14 @@ import {Entities} from "./entities";
 
 interface PlayerPreFab {
   health: Health,
-  base_stats: BaseStats,
+  baseStats: BaseStats,
   tile: GameTile,
 }
 
 interface EntityPreFab {
   health: Health,
-  base_stats: BaseStats,
-  base_entity: BaseEntity,
+  baseStats: BaseStats,
+  baseEntity: BaseEntity,
 }
 
 interface FeatureOpts {
@@ -24,12 +24,12 @@ interface FeatureOpts {
   monsters: Record<number, Record<number, EntityPreFab>>,
 }
 
-const default_player = {
+const defaultPlayer = {
   health: {
-    max_value: 10,
+    maxValue: 10,
     value: 10,
   },
-  base_stats: {
+  baseStats: {
     strength: 2,
     dexterity: 2,
   },
@@ -38,16 +38,16 @@ const default_player = {
 
 const skeleton: EntityPreFab = {
   health: {
-    max_value: 10,
+    maxValue: 10,
     value: 10,
   },
-  base_stats: {
+  baseStats: {
     strength: 1,
     dexterity: 1,
   },
-  base_entity: {
+  baseEntity: {
     blocks: true,
-    blocks_light: true,
+    blocksLight: true,
     renders: true,
     tile: GameTile.Skeleton,
   }
@@ -55,22 +55,22 @@ const skeleton: EntityPreFab = {
 
 const ogre: EntityPreFab = {
   health: {
-    max_value: 10,
+    maxValue: 10,
     value: 10,
   },
-  base_stats: {
+  baseStats: {
     strength: 1,
     dexterity: 1,
   },
-  base_entity: {
+  baseEntity: {
     blocks: true,
-    blocks_light: true,
+    blocksLight: true,
     renders: true,
     tile: GameTile.Ogre,
   }
 };
 
-const default_monsters = {
+const defaultMonsters = {
   1: {
     60: ogre,
     40: skeleton,
@@ -79,7 +79,7 @@ const default_monsters = {
   },
 };
 
-const default_chance = {
+const defaultChance = {
   1: 30,
 };
 
@@ -93,41 +93,41 @@ export class FeatureGenerator {
 
     // TODO: this is not good
     this.options = {
-      player: default_player,
-      monsters: default_monsters,
-      chance: default_chance,
+      player: defaultPlayer,
+      monsters: defaultMonsters,
+      chance: defaultChance,
     };
 
     this.rng = ROT.RNG;
     this.rng.setSeed(seed);
   }
 
-  make_player(
+  makePlayer(
     scene: Scene,
     entities: Entities,
     indx: number
   ): boolean {
-    const player_id = entities.new_id();
+    const playerId = entities.newId();
 
-    scene.player = player_id;
+    scene.player = playerId;
 
-    scene.components.position[player_id] = indx;
+    scene.components.position[playerId] = indx;
 
-    scene.components.base_stats[player_id] = this.options.player.base_stats;
+    scene.components.baseStats[playerId] = this.options.player.baseStats;
 
-    scene.components.health[player_id] = this.options.player.health;
+    scene.components.health[playerId] = this.options.player.health;
 
-    scene.components.player[player_id] = this.options.player.tile;
+    scene.components.player[playerId] = this.options.player.tile;
 
     return true;
   }
 
   // if a level generator should make a monster
-  enemy_by_difficulty(difficulty: number): boolean {
+  enemyByDifficulty(difficulty: number): boolean {
     return this.rng.getPercentage() <= this.options.chance[difficulty];
   }
 
-  get_ent_by_difficulty(difficulty: number): EntityPreFab {
+  getEntByDifficulty(difficulty: number): EntityPreFab {
     const percent = this.rng.getPercentage();
 
     if (percent <= 20) {
@@ -142,25 +142,25 @@ export class FeatureGenerator {
   }
 
 
-  make_enemy(
+  makeEnemy(
     scene: Scene,
     entities: Entities,
     indx: number,
     difficulty: number
   ): boolean {
-    const ent_id = entities.new_id();
+    const entId = entities.newId();
 
-    const ent = this.get_ent_by_difficulty(difficulty);
+    const ent = this.getEntByDifficulty(difficulty);
 
-    scene.components.position[ent_id] = indx;
+    scene.components.position[entId] = indx;
 
-    scene.components.ai[ent_id] = Ai.Enemy;
+    scene.components.ai[entId] = Ai.Enemy;
 
-    scene.components.active_entities[ent_id] = Object.assign(ent.base_entity);
+    scene.components.activeEntities[entId] = Object.assign(ent.baseEntity);
 
-    scene.components.base_stats[ent_id] = Object.assign(ent.base_stats);
+    scene.components.baseStats[entId] = Object.assign(ent.baseStats);
 
-    scene.components.health[ent_id] = Object.assign(ent.health);
+    scene.components.health[entId] = Object.assign(ent.health);
 
     return true;
   }
