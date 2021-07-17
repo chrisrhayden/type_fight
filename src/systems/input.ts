@@ -9,7 +9,7 @@ import {attackEnt} from "./attack";
  */
 export function moveOrAttack(scene: Scene, indx: number): boolean {
   // if we take a move then we are done
-  if (moveTo(scene, scene.player, indx)) {
+  if (moveTo(scene, scene.playerEnt, indx)) {
     return true;
   }
 
@@ -30,7 +30,7 @@ export function moveOrAttack(scene: Scene, indx: number): boolean {
 
   // if the entity is an Enemy then we can attack
   if (scene.components.ai[otherEnt] === Ai.Enemy) {
-    return attackEnt(scene, scene.player, otherEnt);
+    return attackEnt(scene, scene.playerEnt, otherEnt);
   }
 
   // player moved
@@ -61,42 +61,42 @@ export function handleInput(
       case "ArrowUp":
       case "w":
         newPos =
-          scene.components.position[scene.player] - scene.gameMap.width;
+          scene.components.position[scene.playerEnt] - scene.gameMap.width;
         break;
       // left
       case "ArrowLeft":
       case "a":
-        newPos = scene.components.position[scene.player] - 1;
+        newPos = scene.components.position[scene.playerEnt] - 1;
         break;
       case "ArrowDown":
       case "s":
         newPos =
-          scene.components.position[scene.player] + scene.gameMap.width;
+          scene.components.position[scene.playerEnt] + scene.gameMap.width;
         break;
       // right
       case "ArrowRight":
       case "d":
-        newPos = scene.components.position[scene.player] + 1;
+        newPos = scene.components.position[scene.playerEnt] + 1;
         break;
       // up-right
       case "e":
         newPos =
-          (scene.components.position[scene.player] - scene.gameMap.width) + 1;
+          (scene.components.position[scene.playerEnt] - scene.gameMap.width) + 1;
         break;
       // up-left
       case "q":
         newPos =
-          (scene.components.position[scene.player] - scene.gameMap.width) - 1;
+          (scene.components.position[scene.playerEnt] - scene.gameMap.width) - 1;
         break;
       // down-right
       case "x":
         newPos =
-          (scene.components.position[scene.player] + scene.gameMap.width) + 1;
+          (scene.components.position[scene.playerEnt] + scene.gameMap.width) + 1;
         break;
       // down-left
       case "z":
         newPos =
-          (scene.components.position[scene.player] + scene.gameMap.width) - 1;
+          (scene.components.position[scene.playerEnt] + scene.gameMap.width) - 1;
         break;
     }
 

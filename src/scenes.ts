@@ -9,12 +9,12 @@ import {GameMap} from "./gameMap/gameMap";
 export class Scene {
   gameMap: GameMap;
 
-  player: number;
-
   components: Components;
 
+  playerEnt: number;
+
   constructor() {
-    this.player = 0;
+    this.playerEnt = 0;
 
     this.components = new Components();
   }

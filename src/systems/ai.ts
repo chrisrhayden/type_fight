@@ -58,7 +58,7 @@ export function runAi(scene: Scene): boolean {
         return true;
       };
 
-      const playerPos = scene.components.position[scene.player];
+      const playerPos = scene.components.position[scene.playerEnt];
 
       const pX = playerPos % scene.gameMap.width;
       const pY = Math.floor(playerPos / scene.gameMap.width);
@@ -100,7 +100,7 @@ export function runAi(scene: Scene): boolean {
           return true;
         }
 
-        return attackEnt(scene, aiId, scene.player);
+        return attackEnt(scene, aiId, scene.playerEnt);
       }
     }
   }

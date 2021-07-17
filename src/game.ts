@@ -3,14 +3,31 @@ import * as PIXI from "pixi.js";
 
 import * as ROT from "rot-js";
 
-import {makeDefaultKeys} from "./keyboard";
-import {runAi} from "./systems/ai";
-import {handleInput} from "./systems/input";
-import {Entities} from "./entities";
-import {Scenes, Scene} from "./scenes";
-import {GameMap} from "./gameMap/gameMap";
-import {BasicMap} from "./levelGen/basicMap";
-import {FeatureGenerator} from "./featureGenerator";
+import { makeDefaultKeys } from "./keyboard";
+import { runAi } from "./systems/ai";
+import { handleInput } from "./systems/input";
+import { Entities } from "./entities";
+import { Scenes, Scene } from "./scenes";
+import { GameMap } from "./gameMap/gameMap";
+import { BasicMap } from "./levelGen/basicMap";
+import { FeatureGenerator } from "./featureGenerator";
+
+/** pixi options
+ *
+ * this is mostly to not have to look up the data again
+ */
+export type PixiOpts = {
+  // default: 800
+  width?: number,
+  // default: 600
+  height?: number,
+  // default: false
+  antialias?: boolean,
+  // default: false
+  transparent?: boolean,
+  // default: 1
+  resolution?: number,
+};
 
 /** main game options */
 export interface GameOpts {
@@ -19,92 +36,17 @@ export interface GameOpts {
   // the spriteSheet w,h
   spriteSize: [number, number];
   // the current rng seed
-  rngSeed: number,
+  rngSeed: number;
   // this is a bit wrong as it adds 1, (i.e. d = (r * 2) + 1)
-  radius: number,
+  radius: number;
 }
 
-// TODO: this really needs to be improved
-function loadAssets(spriteSheet: string): Promise<PIXI.Spritesheet> {
-  const loader = PIXI.Loader.shared;
-
-  return new Promise<PIXI.Spritesheet>((resolve, reject) => {
-    loader.add(spriteSheet).load((_loader, resources) => {
-      const sprites: PIXI.Spritesheet = resources[spriteSheet].spritesheet;
-
-      if (sprites && sprites["textures"]) {
-        resolve(sprites);
-      } else {
-        reject("cant make sprites");
-      }
-    });
-  });
-}
-
-/** compute fov
- *
- * use rot-js's precise shadowcasting algorithm
- */
-function computeFov(radius: number, scene: Scene, ent: number): boolean {
-  if ((ent in scene.components.position) === false) {
-    console.error("entity does not have a position");
-
-    return false;
-  }
-
-  // if lightPasses the cell
-  const lightPasses = (x: number, y: number): boolean => {
-    const indx = x + (scene.gameMap.width * y);
-
-    if (indx < 0 || indx >= scene.gameMap.data.length) {
-      return false;
-    }
-
-    if (scene.gameMap.data[indx].blocks === true) {
-      return false;
-    }
-
-    const entities = Object.entries(scene.components.activeEntities);
-    for (const [id, ent] of entities) {
-      if ((id in scene.components.position) === false) {
-        continue;
-      }
-
-      if (scene.components.position[id] === indx) {
-        return ent.blocksLight === false;
-      }
-    }
-
-    return true;
-  };
-
-  // this what to do when once a tile is in the players view and light passes
-  const cellLogic = (x: number, y: number, r: number, visibility: number) => {
-    const indx = x + (scene.gameMap.width * y);
-
-    if (indx < 0 || indx >= scene.gameMap.data.length) {
-      return false;
-    }
-
-    // visibility could be used to adjust tint at some point
-    if (visibility > 0 && r <= radius) {
-      // index will always be in map data if passes the first if, hopefully
-      scene.gameMap.data[indx].visible = true;
-
-      scene.gameMap.data[indx].visited = true;
-    }
-  };
-
-  const fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
-
-  const indx = scene.components.position[ent];
-
-  const pX = indx % scene.gameMap.width;
-  const pY = Math.floor(indx / scene.gameMap.width);
-
-  fov.compute(pX, pY, radius, cellLogic);
-
-  return true;
+// this is just flow control for the main game loop
+enum LoopState {
+  PlayerTurn,
+  AiTurn,
+  Pause,
+  MainMenu,
 }
 
 /** the main data class
@@ -128,14 +70,6 @@ export class GameData {
   }
 }
 
-// this is just flow control for the main game loop
-enum LoopState {
-  PlayerTurn,
-  AiTurn,
-  Pause,
-  MainMenu,
-}
-
 /** the game
  *
  * this makes up the basic structure of the game and the main flow control
@@ -147,8 +81,8 @@ export class Game {
   // the current spriteSheet that everything will be drawn from
   spriteSheet: PIXI.Spritesheet;
 
-  // display containers, sprites are add to a container and pixi will draw them
-  // from there
+  // display containers, sprites are added to a container and pixi will draw
+  // them from there
   containers: Record<string, PIXI.Container>;
 
   // the sprites for the map
@@ -222,7 +156,7 @@ export class Game {
       return null;
     }
 
-    if (!computeFov(this.options.radius, curScene, curScene.player)) {
+    if (!computeFov(this.options.radius, curScene, curScene.playerEnt)) {
       console.error("could not compute fov");
 
       return null;
@@ -366,23 +300,23 @@ export class Game {
     }
 
     // now for the player
-    const pos = scene.components.position[scene.player];
+    const pos = scene.components.position[scene.playerEnt];
 
     const x = pos % scene.gameMap.width;
     const y = Math.floor(pos / scene.gameMap.width);
 
-    if (scene.player in this.entitySprites) {
-      this.entitySprites[scene.player].x = x * this.options.spriteSize[0];
-      this.entitySprites[scene.player].y = y * this.options.spriteSize[0];
+    if (scene.playerEnt in this.entitySprites) {
+      this.entitySprites[scene.playerEnt].x = x * this.options.spriteSize[0];
+      this.entitySprites[scene.playerEnt].y = y * this.options.spriteSize[0];
     } else {
-      this.entitySprites[scene.player] = new PIXI.Sprite(
-        this.spriteSheet["textures"][scene.components.player[scene.player]]
+      this.entitySprites[scene.playerEnt] = new PIXI.Sprite(
+        this.spriteSheet["textures"][scene.components.player[scene.playerEnt]]
       );
 
-      this.entitySprites[scene.player].x = x * this.options.spriteSize[0];
-      this.entitySprites[scene.player].y = y * this.options.spriteSize[0];
+      this.entitySprites[scene.playerEnt].x = x * this.options.spriteSize[0];
+      this.entitySprites[scene.playerEnt].y = y * this.options.spriteSize[0];
 
-      this.containers["entities"].addChild(this.entitySprites[scene.player]);
+      this.containers["entities"].addChild(this.entitySprites[scene.playerEnt]);
     }
 
     return true;
@@ -425,7 +359,7 @@ export class Game {
       }
 
       // computeFov needs to be run first
-      if (!computeFov(this.options.radius, curScene, curScene.player)) {
+      if (!computeFov(this.options.radius, curScene, curScene.playerEnt)) {
         console.error("could not compute fov");
 
         return false;
@@ -458,12 +392,90 @@ export class Game {
   }
 }
 
-/** start the game
+// TODO: this really needs to be improved
+function loadAssets(spriteSheet: string): Promise<PIXI.Spritesheet> {
+  const loader = PIXI.Loader.shared;
+
+  return new Promise<PIXI.Spritesheet>((resolve, reject) => {
+    loader.add(spriteSheet).load((_loader, resources) => {
+      const sprites: PIXI.Spritesheet = resources[spriteSheet].spritesheet;
+
+      if (sprites && sprites["textures"]) {
+        resolve(sprites);
+      } else {
+        reject("cant make sprites");
+      }
+    });
+  });
+}
+
+/** compute fov
  *
- *.then this give async context allowing for many other thighs like making levels or
- * loading assets to run asynchronously as well not having to use
- * callbacks like `.then()`
+ * use rot-js's precise shadowcasting algorithm
  */
+function computeFov(radius: number, scene: Scene, ent: number): boolean {
+  if ((ent in scene.components.position) === false) {
+    console.error("entity does not have a position");
+
+    return false;
+  }
+
+  // if lightPasses the cell
+  const lightPasses = (x: number, y: number): boolean => {
+    const indx = x + (scene.gameMap.width * y);
+
+    if (indx < 0 || indx >= scene.gameMap.data.length) {
+      return false;
+    }
+
+    if (scene.gameMap.data[indx].blocks === true) {
+      return false;
+    }
+
+    const entities = Object.entries(scene.components.activeEntities);
+    for (const [id, ent] of entities) {
+      if ((id in scene.components.position) === false) {
+        continue;
+      }
+
+      if (scene.components.position[id] === indx) {
+        return ent.blocksLight === false;
+      }
+    }
+
+    return true;
+  };
+
+  // this what to do when once a tile is in the players view and light passes
+  const cellLogic = (x: number, y: number, r: number, visibility: number) => {
+    const indx = x + (scene.gameMap.width * y);
+
+    if (indx < 0 || indx >= scene.gameMap.data.length) {
+      return false;
+    }
+
+    // visibility could be used to adjust tint at some point
+    if (visibility > 0 && r <= radius) {
+      // index will always be in map data if passes the first if, hopefully
+      scene.gameMap.data[indx].visible = true;
+
+      scene.gameMap.data[indx].visited = true;
+    }
+  };
+
+  const fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
+
+  const indx = scene.components.position[ent];
+
+  const pX = indx % scene.gameMap.width;
+  const pY = Math.floor(indx / scene.gameMap.width);
+
+  fov.compute(pX, pY, radius, cellLogic);
+
+  return true;
+}
+
+/** start the game */
 export async function startGame(
   app: PIXI.Application,
   gameOpts: GameOpts,

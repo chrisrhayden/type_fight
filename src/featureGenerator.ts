@@ -109,7 +109,7 @@ export class FeatureGenerator {
   ): boolean {
     const playerId = entities.newId();
 
-    scene.player = playerId;
+    scene.playerEnt = playerId;
 
     scene.components.position[playerId] = indx;
 

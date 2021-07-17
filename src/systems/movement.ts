@@ -20,7 +20,7 @@ export function moveTo(
   }
 
   // if the player is there
-  if (pos === scene.components.position[scene.player]) {
+  if (pos === scene.components.position[scene.playerEnt]) {
     return false;
   }
 
