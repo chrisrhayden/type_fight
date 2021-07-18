@@ -1,8 +1,7 @@
 /** App.tsx
- *
- * the main context for loading and running the rest of the app
- */
-
+*
+* the main context for loading and running the rest of the app
+*/
 import React, { useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
 
@@ -13,10 +12,10 @@ import "./App.css";
 import { startGame, GameData, GameOpts, PixiOpts } from "./game";
 
 /** the main Component for the app
- *
- * this is more or less the main context that will allow the game state and the
- * react state to interact at some point
- */
+*
+* this is more or less the main context that will allow the game state and the
+* react state to interact at some point
+*/
 function App() {
   // a child ref that will be use in the closure passed to useEffect
   const pixiRef = useRef(null);
